@@ -45,7 +45,7 @@ import javax.crypto.spec.SecretKeySpec;
  * @author hzhlu
  * @version 1.0.20120427 add 驼峰式字符串格式化
  */
-public class Toolbox {
+public class MyTools {
 
     /**
      * Logger for this class
