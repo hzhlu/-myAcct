@@ -2,15 +2,12 @@ package com.macrolab.myAcct;
 
 import com.macrolab.myAcct.common.AppContext;
 import com.macrolab.myAcct.controller.MainController;
-import com.macrolab.myAcct.model.TMyAcct;
 import com.macrolab.myAcct.service.DBService;
+import com.macrolab.myAcct.service.MyAcctService;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.fxml.JavaFXBuilderFactory;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
@@ -18,8 +15,6 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.net.URL;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,7 +26,7 @@ import java.util.logging.Logger;
 public class Main extends Application {
     public static String workpath = System.getProperty("user.dir");
 
-    DBService dbService;
+    MyAcctService myAcctService = new MyAcctService();
 
     private Stage stage;
     private final double MINIMUM_WINDOW_WIDTH = 1200;
@@ -60,9 +55,8 @@ public class Main extends Application {
         try {
             MainController mainController = (MainController) replaceSceneContent("myAcct.fxml");
             mainController.setApp(this);
-
-            loadData(mainController);              // 加载页面数据
-
+            mainController.setMyAcctService(myAcctService);
+            mainController.loadList( );              // 加载页面数据
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -94,29 +88,14 @@ public class Main extends Application {
         return (Initializable) loader.getController();
     }
 
-    /**
-     * 加载缺省资料库内容
-     */
-    private void loadData(MainController mainController) {
-        List<TMyAcct> list = dbService.query("");
-        for (TMyAcct myAcct : list) {
-            System.out.println(myAcct);
-        }
-
-        ObservableList<String> items = FXCollections.observableArrayList(
-                "A", "B", "C", "D");
-//        mainController.g
-//        list.setItems(items);
-
-    }
-
     private void appinit() {
         // 初始化数据库
         System.out.println("初始化数据库,加载默认资料库myAcct.db");
         AppContext.dbService = new DBService();
         AppContext.dbService.setDbFile("D:/mySCM/gitRepo/myAcct/db/myAcct.db");
         AppContext.dbService.connect();
-        dbService = AppContext.dbService;
+
+        myAcctService.setDbService(AppContext.dbService);
     }
 
 

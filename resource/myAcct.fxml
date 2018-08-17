@@ -5,36 +5,35 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.web.HTMLEditor?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="775.0" prefWidth="1198.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.macrolab.myAcct.controller.MainController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="775.0" prefWidth="1244.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.macrolab.myAcct.controller.MainController">
 
     <children>
-        <Button fx:id="btnSearch" layoutX="142.0" layoutY="70.0" mnemonicParsing="false" onAction="#actionSearch" prefHeight="23.0" prefWidth="52.0" text="查找" />
-        <TextField fx:id="txtSearch" layoutX="14.0" layoutY="71.0" prefHeight="23.0" prefWidth="119.0" promptText="资料名称" />
-        <ListView fx:id="listAcct" layoutX="14.0" layoutY="100.0" onEditStart="#listOnEditStart" prefHeight="655.0" prefWidth="180.0" />
-        <TextField fx:id="txtAcctName" layoutX="287.0" layoutY="70.0" prefHeight="23.0" prefWidth="208.0" />
-        <Label layoutX="226.0" layoutY="76.0" text="资料名称" />
-        <Label layoutX="527.0" layoutY="74.0" text="资料校验码" />
+        <Button fx:id="btnSearch" layoutX="206.0" layoutY="71.0" mnemonicParsing="false" onAction="#actionSearch" prefHeight="23.0" prefWidth="52.0" text="查找" />
+        <TextField fx:id="txtSearch" layoutX="14.0" layoutY="71.0" prefHeight="23.0" prefWidth="187.0" promptText="资料名称" />
+        <ListView fx:id="listAcct" layoutX="14.0" layoutY="100.0" onKeyReleased="#listOnKeyReleased" onMouseClicked="#listOnMouseClicked" prefHeight="655.0" prefWidth="244.0" />
+        <TextField fx:id="txtAcctName" layoutX="335.0" layoutY="70.0" prefHeight="23.0" prefWidth="269.0" promptText="资料名称" />
+        <Label layoutX="612.0" layoutY="75.0" text="资料校验码" />
         <Label fx:id="labelKeyVerifyCode" alignment="CENTER" layoutX="808.0" layoutY="74.0" prefHeight="19.0" prefWidth="94.0" text="****-****" textAlignment="CENTER">
             <font>
                 <Font name="System Bold" size="12.0" />
             </font>
         </Label>
-        <ToolBar layoutX="1.0" prefHeight="33.0" prefWidth="1198.0">
+        <ToolBar layoutX="1.0" prefHeight="33.0" prefWidth="1244.0">
             <items>
-            <ChoiceBox fx:id="choiceDBFile" prefHeight="23.0" prefWidth="193.0" />
-                <PasswordField fx:id="txtKey" promptText="资料库保护秘钥" />
+                <ChoiceBox fx:id="choiceDBFile" prefHeight="23.0" prefWidth="242.0" />
+            <Separator prefHeight="23.0" prefWidth="22.0" />
+                <PasswordField fx:id="txtKey" prefHeight="23.0" prefWidth="148.0" promptText="资料库保护秘钥" />
                 <Button fx:id="btnKeyVerifyCode" mnemonicParsing="false" onAction="#actionKeyVerifyCode" text="秘钥校验码" />
                 <Separator prefHeight="23.0" prefWidth="30.0" />
-            <Button fx:id="btnCreateAcct" mnemonicParsing="false" onAction="#actionCreateAcct" text="创建资料库" />
-            <Button fx:id="btnBackupAcct" mnemonicParsing="false" onAction="#actionBackupAcct" text="备份资料库" />
+                <Button fx:id="btnCreateAcct" mnemonicParsing="false" onAction="#actionCreateAcct" text="创建资料库" />
+                <Button fx:id="btnBackupAcct" mnemonicParsing="false" onAction="#actionBackupAcct" text="备份资料库" />
                 <Separator prefHeight="23.0" prefWidth="40.0" />
                 <Label text="资料操作" />
                 <Button fx:id="btnNew" mnemonicParsing="false" onAction="#actionNew" prefHeight="23.0" prefWidth="85.0" text="新建" />
@@ -46,22 +45,15 @@
         <Label fx:id="labelUpdateDate" layoutX="1002.0" layoutY="76.0" prefHeight="15.0" prefWidth="168.0" text="update_date" />
         <Label fx:id="labelCreateDate" layoutX="1002.0" layoutY="44.0" prefHeight="15.0" prefWidth="168.0" text="create_date" />
         <Label layoutX="923.0" layoutY="44.0" text="登记时间" />
-        <Label layoutX="729.0" layoutY="74.0" prefHeight="15.0" prefWidth="64.0" text="秘钥校验码" />
-        <Label fx:id="labelMAC" alignment="CENTER" layoutX="601.0" layoutY="74.0" prefHeight="15.0" prefWidth="94.0" text="****-****" textAlignment="CENTER" textFill="#0055ff">
+        <Label layoutX="760.0" layoutY="74.0" prefHeight="15.0" prefWidth="64.0" text="秘钥校验码" />
+        <Label fx:id="labelMAC" alignment="CENTER" layoutX="672.0" layoutY="76.0" prefHeight="15.0" prefWidth="76.0" text="****-****" textAlignment="CENTER" textFill="#0055ff">
             <font>
                 <Font name="System Bold" size="12.0" />
             </font>
         </Label>
-        <ScrollPane layoutX="204.0" layoutY="102.0" prefHeight="655.0" prefWidth="977.0">
-            <content>
-                <AnchorPane prefHeight="655.0" prefWidth="977.0">
-                    <children>
-                        <TextArea fx:id="txtContent" layoutX="254.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                    </children>
-                </AnchorPane>
-            </content>
-        </ScrollPane>
-      <Label fx:id="labelPath" layoutX="226.0" layoutY="44.0" prefHeight="15.0" prefWidth="393.0" text="资料层级关系" />
-      <Label fx:id="labelContentChanged" layoutX="729.0" layoutY="44.0" text="资料内容有变更，请注意保存" textFill="RED" />
+        <Label fx:id="labelPath" layoutX="14.0" layoutY="44.0" prefHeight="15.0" prefWidth="350.0" text="资料层级关系" />
+        <Label fx:id="labelContentChanged" layoutX="729.0" layoutY="44.0" text="资料内容有变更，请注意保存" textFill="RED" />
+      <HTMLEditor fx:id="htmlEditor" htmlText="&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body contenteditable=&quot;true&quot;&gt;&lt;/body&gt;&lt;/html&gt;" layoutX="267.0" layoutY="100.0" onKeyReleased="#onContentChanged" prefHeight="655.0" prefWidth="961.0" />
+      <Label fx:id="labelId" alignment="CENTER" layoutX="276.0" layoutY="74.0" prefHeight="15.0" prefWidth="52.0" text="资料编号" textAlignment="CENTER" />
     </children>
 </AnchorPane>

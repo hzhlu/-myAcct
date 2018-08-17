@@ -5,7 +5,8 @@ import com.macrolab.myAcct.model.TMyAcct;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DBService {
     Connection conn;
@@ -35,32 +36,57 @@ public class DBService {
         try {
             this.conn = DriverManager.getConnection(url);
         } catch (SQLException e) {
-            System.err.println("连接数据库【" + url + "】异常：" + e.getMessage());
+            Logger.getLogger(DBService.class.getName()).log(Level.WARNING, "连接数据库【" + url + "】异常：" + e.getMessage());
         }
         return conn;
     }
 
     public void insertMyAcct(TMyAcct myAcct) {
-        String sql = "INSERT INTO myAcct (name, content, create_date, update_date, security_key, key_verify_code) VALUES(?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO myAcct (name,content,create_date,update_date,salt,key_verify_code,pid,mac,draworder) VALUES(?,?,?,?,?,?,?,?,?)";
 
         try {
-            System.out.println(sql);
+            Logger.getLogger(DBService.class.getName()).log(Level.INFO, sql);
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, myAcct.getName());
             pstmt.setString(2, myAcct.getContent());
             pstmt.setString(3, myAcct.getCreateDate());
             pstmt.setString(4, myAcct.getUpdateDate());
-            pstmt.setString(5, myAcct.getSecurityKey());
+            pstmt.setString(5, myAcct.getSalt());
             pstmt.setString(6, myAcct.getKeyVerifyCode());
+            pstmt.setInt(7, myAcct.getPid());
+            pstmt.setString(8, myAcct.getMac());
+            pstmt.setInt(9, myAcct.getDraworder());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            Logger.getLogger(DBService.class.getName()).log(Level.WARNING, e.getMessage(), e);
+        }
+    }
+
+    public void updateMyAcct(TMyAcct myAcct) {
+        String sql = "update myAcct set name=?,content=?,create_date=?,update_date=?,salt=?,key_verify_code=?,pid=?,mac=?,draworder=? where id=?";
+        try {
+            Logger.getLogger(DBService.class.getName()).log(Level.INFO, sql);
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, myAcct.getName());
+            pstmt.setString(2, myAcct.getContent());
+            pstmt.setString(3, myAcct.getCreateDate());
+            pstmt.setString(4, myAcct.getUpdateDate());
+            pstmt.setString(5, myAcct.getSalt());
+            pstmt.setString(6, myAcct.getKeyVerifyCode());
+            pstmt.setInt(7, myAcct.getPid());
+            pstmt.setString(8, myAcct.getMac());
+            pstmt.setInt(9, myAcct.getDraworder());
+            pstmt.setInt(10, myAcct.getId());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            Logger.getLogger(DBService.class.getName()).log(Level.WARNING, "更新资料异常！" + e.getMessage(), e);
         }
     }
 
 
     public List<TMyAcct> query(String where) {
-        String sql = "SELECT id,pid,name,content,create_date,update_date,security_key,key_verify_code,mac FROM main.myAcct where 1=1 " + where;
+        String sql = "SELECT id,pid,name,content,create_date,update_date,salt,key_verify_code,mac,draworder FROM main.myAcct where 1=1 " + where + " order by draworder desc";
+        Logger.getLogger(DBService.class.getName()).log(Level.INFO, "querySQL ==>" + sql);
         List<TMyAcct> result = new ArrayList<>();
         try {
             Statement stmt = conn.createStatement();
@@ -74,18 +100,32 @@ public class DBService {
                 myAcct.setContent(rs.getString("content"));
                 myAcct.setCreateDate(rs.getString("create_date"));
                 myAcct.setUpdateDate(rs.getString("update_date"));
-                myAcct.setSecurityKey(rs.getString("security_key"));
+                myAcct.setSalt(rs.getString("salt"));
                 myAcct.setKeyVerifyCode(rs.getString("key_verify_code"));
                 myAcct.setMac(rs.getString("mac"));
+                myAcct.setDraworder(rs.getInt("draworder"));
                 result.add(myAcct);
             }
             return result;
         } catch (SQLException e) {
-            System.err.println(e.getMessage());
+            Logger.getLogger(DBService.class.getName()).log(Level.WARNING, "查询资料异常！" + e.getMessage(), e);
         }
         return null;
     }
 
+
+    public void deleteMyAcct(TMyAcct myAcct) {
+        String sql = "delete from myAcct  where id=?";
+        Logger.getLogger(DBService.class.getName()).log(Level.INFO, "querySQL ==>" + sql);
+        List<TMyAcct> result = new ArrayList<>();
+        try {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, myAcct.getId());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            Logger.getLogger(DBService.class.getName()).log(Level.WARNING, "删除资料异常！" + e.getMessage(), e);
+        }
+    }
 
     public static void main(String[] args) {
         DBService dbService = new DBService();
@@ -94,9 +134,10 @@ public class DBService {
         TMyAcct myAcct = new TMyAcct();
         myAcct.setContent("fdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasf");
         dbService.insertMyAcct(myAcct);
-        List<TMyAcct> r= dbService.query("");
-        r.stream().forEach(t->{
+        List<TMyAcct> r = dbService.query("");
+        r.stream().forEach(t -> {
             System.out.println(t);
         });
     }
+
 }

@@ -32,9 +32,9 @@ public class TMyAcct {
     String updateDate;
 
     /**
-     * 资料保护秘钥
+     * 资料保护的盐
      */
-    String securityKey;
+    String salt;
 
     /**
      * securityKey的hash值
@@ -45,6 +45,20 @@ public class TMyAcct {
      * 资料内容的md5值
      */
     String mac;
+
+
+    /**
+     * 排序值
+     */
+    int  draworder;
+
+    public int getDraworder() {
+        return draworder;
+    }
+
+    public void setDraworder(int draworder) {
+        this.draworder = draworder;
+    }
 
     public String getMac() {
         return mac;
@@ -102,12 +116,12 @@ public class TMyAcct {
         this.updateDate = updateDate;
     }
 
-    public String getSecurityKey() {
-        return securityKey;
+    public String getSalt() {
+        return salt;
     }
 
-    public void setSecurityKey(String securityKey) {
-        this.securityKey = securityKey;
+    public void setSalt(String salt) {
+        this.salt = salt;
     }
 
     public String getKeyVerifyCode() {
@@ -120,16 +134,6 @@ public class TMyAcct {
 
     @Override
     public String toString() {
-        return "TMyAcct{" +
-                "id=" + id +
-                ", pid=" + pid +
-                ", name='" + name + '\'' +
-                ", content='" + content + '\'' +
-                ", createDate='" + createDate + '\'' +
-                ", updateDate='" + updateDate + '\'' +
-                ", securityKey='" + securityKey + '\'' +
-                ", keyVerifyCode='" + keyVerifyCode + '\'' +
-                ", mac='" + mac + '\'' +
-                '}';
+        return "[" + id + "] " + name;
     }
 }
