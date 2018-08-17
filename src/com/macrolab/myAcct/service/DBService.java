@@ -3,6 +3,9 @@ package com.macrolab.myAcct.service;
 import com.macrolab.myAcct.model.TMyAcct;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class DBService {
     Connection conn;
@@ -32,13 +35,13 @@ public class DBService {
         try {
             this.conn = DriverManager.getConnection(url);
         } catch (SQLException e) {
-            System.err.println(e.getMessage());
+            System.err.println("连接数据库【" + url + "】异常：" + e.getMessage());
         }
         return conn;
     }
 
     public void insertMyAcct(TMyAcct myAcct) {
-        String sql = "INSERT INTO main.myAcct (name, content, create_date, update_date, security_key, key_verify_code) VALUES(?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO myAcct (name, content, create_date, update_date, security_key, key_verify_code) VALUES(?, ?, ?, ?, ?, ?)";
 
         try {
             System.out.println(sql);
@@ -56,20 +59,31 @@ public class DBService {
     }
 
 
-    public void selectAll() {
-        String sql = "SELECT * FROM main.myAcct";
-
+    public List<TMyAcct> query(String where) {
+        String sql = "SELECT id,pid,name,content,create_date,update_date,security_key,key_verify_code,mac FROM main.myAcct where 1=1 " + where;
+        List<TMyAcct> result = new ArrayList<>();
         try {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
-
             // loop through the result set
             while (rs.next()) {
-                System.out.println(rs.getInt("id") + "\t" + rs.getString("name") + "\t"+rs.getString("content") + "\t");
+                TMyAcct myAcct = new TMyAcct();
+                myAcct.setId(rs.getInt("id"));
+                myAcct.setPid(rs.getInt("pid"));
+                myAcct.setName(rs.getString("name"));
+                myAcct.setContent(rs.getString("content"));
+                myAcct.setCreateDate(rs.getString("create_date"));
+                myAcct.setUpdateDate(rs.getString("update_date"));
+                myAcct.setSecurityKey(rs.getString("security_key"));
+                myAcct.setKeyVerifyCode(rs.getString("key_verify_code"));
+                myAcct.setMac(rs.getString("mac"));
+                result.add(myAcct);
             }
+            return result;
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
         }
+        return null;
     }
 
 
@@ -80,6 +94,9 @@ public class DBService {
         TMyAcct myAcct = new TMyAcct();
         myAcct.setContent("fdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasf");
         dbService.insertMyAcct(myAcct);
-        dbService.selectAll();
+        List<TMyAcct> r= dbService.query("");
+        r.stream().forEach(t->{
+            System.out.println(t);
+        });
     }
 }

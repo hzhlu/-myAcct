@@ -1,36 +1,67 @@
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.text.Font?>
-<?import javafx.scene.web.WebView?>
-<?import javafx.scene.layout.Pane?>
+<?xml version="1.0" encoding="UTF-8"?>
 
-<Pane fx:controller="com.macrolab.myAcct.controller.Controller" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="775.0" prefWidth="1198.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.macrolab.myAcct.controller.Controller">
 
     <children>
-        <Button layoutX="123.0" layoutY="47.0" mnemonicParsing="false" prefHeight="23.0" prefWidth="52.0" text="查找" />
-        <TextField layoutX="14.0" layoutY="47.0" prefHeight="23.0" prefWidth="102.0" />
-        <ListView layoutX="14.0" layoutY="82.0" prefHeight="480.0" prefWidth="161.0" />
-        <TextField layoutX="283.0" layoutY="47.0" prefHeight="23.0" prefWidth="227.0" />
-        <Label layoutX="204.0" layoutY="51.0" text="安全文件名称" />
-        <Label layoutX="527.0" layoutY="51.0" text="安全文件秘钥校验码" />
-        <Label layoutX="667.0" layoutY="49.0" text="****-****-****">
+        <Button layoutX="142.0" layoutY="70.0" mnemonicParsing="false" prefHeight="23.0" prefWidth="52.0" text="查找" />
+        <TextField layoutX="14.0" layoutY="71.0" prefHeight="23.0" prefWidth="119.0" promptText="资料名称" />
+        <ListView layoutX="14.0" layoutY="100.0" prefHeight="655.0" prefWidth="180.0" />
+        <TextField layoutX="287.0" layoutY="70.0" prefHeight="23.0" prefWidth="208.0" />
+        <Label layoutX="226.0" layoutY="76.0" text="资料名称" />
+        <Label layoutX="527.0" layoutY="74.0" text="资料校验码" />
+        <Label alignment="CENTER" layoutX="808.0" layoutY="74.0" prefHeight="19.0" prefWidth="94.0" text="****-****" textAlignment="CENTER">
             <font>
-                <Font name="System Bold" size="14.0" />
+                <Font name="System Bold" size="12.0" />
             </font>
         </Label>
-        <ToolBar layoutX="1.0" prefHeight="33.0" prefWidth="900.0">
+        <ToolBar layoutX="1.0" prefHeight="33.0" prefWidth="1198.0">
             <items>
-                <Button mnemonicParsing="false" prefHeight="23.0" prefWidth="85.0" text="新建" />
-                <Button defaultButton="true" mnemonicParsing="false" prefHeight="23.0" prefWidth="85.0" text="保存" />
+            <ChoiceBox fx:id="choiceDBFile" prefHeight="23.0" prefWidth="193.0" />
+                <PasswordField promptText="资料库保护秘钥" />
+                <Button mnemonicParsing="false" text="秘钥校验码" />
                 <Separator prefHeight="23.0" prefWidth="30.0" />
-                <Button mnemonicParsing="false" prefHeight="23.0" prefWidth="85.0" text="删除" />
+            <Button mnemonicParsing="false" text="创建资料库" />
+            <Button mnemonicParsing="false" text="备份资料库" />
                 <Separator prefHeight="23.0" prefWidth="40.0" />
-                <Label text="安全秘钥" />
-                <PasswordField />
-                <Button mnemonicParsing="false" text="校验码" />
+                <Label text="资料操作" />
+                <Button fx:id="btnNew" mnemonicParsing="false" onAction="#actionCreateAccount" prefHeight="23.0" prefWidth="85.0" text="新建" />
+                <Button defaultButton="true" mnemonicParsing="false" prefHeight="23.0" prefWidth="85.0" text="保存" />
+                <Button mnemonicParsing="false" prefHeight="23.0" prefWidth="85.0" text="删除" />
             </items>
         </ToolBar>
-        <WebView layoutX="197.0" layoutY="82.0" prefHeight="480.0" prefWidth="648.0" />
+        <Label layoutX="923.0" layoutY="76.0" text="更新时间" />
+        <Label fx:id="labelUpdateDate" layoutX="1002.0" layoutY="76.0" prefHeight="15.0" prefWidth="168.0" text="update_date" />
+        <Label fx:id="labelCreateDate" layoutX="1002.0" layoutY="44.0" prefHeight="15.0" prefWidth="168.0" text="create_date" />
+        <Label layoutX="923.0" layoutY="44.0" text="登记时间" />
+        <Label layoutX="729.0" layoutY="74.0" prefHeight="15.0" prefWidth="64.0" text="秘钥校验码" />
+        <Label alignment="CENTER" layoutX="601.0" layoutY="74.0" prefHeight="15.0" prefWidth="94.0" text="****-****" textAlignment="CENTER" textFill="#0055ff">
+            <font>
+                <Font name="System Bold" size="12.0" />
+            </font>
+        </Label>
+        <ScrollPane layoutX="204.0" layoutY="102.0" prefHeight="655.0" prefWidth="977.0">
+            <content>
+                <AnchorPane prefHeight="655.0" prefWidth="977.0">
+                    <children>
+                        <TextArea layoutX="254.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                    </children>
+                </AnchorPane>
+            </content>
+        </ScrollPane>
+      <Label layoutX="226.0" layoutY="44.0" prefHeight="15.0" prefWidth="393.0" text="资料层级关系" />
     </children>
 </Pane>
-
