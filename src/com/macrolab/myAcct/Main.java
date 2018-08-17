@@ -5,6 +5,8 @@ import com.macrolab.myAcct.controller.MainController;
 import com.macrolab.myAcct.model.TMyAcct;
 import com.macrolab.myAcct.service.DBService;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.fxml.JavaFXBuilderFactory;
@@ -58,12 +60,12 @@ public class Main extends Application {
         try {
             MainController mainController = (MainController) replaceSceneContent("myAcct.fxml");
             mainController.setApp(this);
+
+            loadData(mainController);              // 加载页面数据
+
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        // 加载页面数据
-        loadData();
     }
 
     /**
@@ -73,7 +75,7 @@ public class Main extends Application {
      * @return
      * @throws Exception
      */
-    private Object replaceSceneContent(String fxml) throws Exception {
+    private Initializable replaceSceneContent(String fxml) throws Exception {
         FXMLLoader loader = new FXMLLoader();
         File fileFXML = new File(workpath + "/resource/" + fxml);
         FileInputStream fis = new FileInputStream(fileFXML);
@@ -89,20 +91,21 @@ public class Main extends Application {
         Scene scene = new Scene(page, 1200, 800);
         stage.setScene(scene);
         stage.sizeToScene();
-        return loader.getController();
+        return (Initializable) loader.getController();
     }
 
     /**
      * 加载缺省资料库内容
      */
-    private void loadData() {
+    private void loadData(MainController mainController) {
         List<TMyAcct> list = dbService.query("");
         for (TMyAcct myAcct : list) {
             System.out.println(myAcct);
         }
 
-//        ObservableList<String> items = FXCollections.observableArrayList(
-//                "A", "B", "C", "D");
+        ObservableList<String> items = FXCollections.observableArrayList(
+                "A", "B", "C", "D");
+//        mainController.g
 //        list.setItems(items);
 
     }
