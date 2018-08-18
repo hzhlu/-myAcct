@@ -55,8 +55,10 @@ public class DBService {
             pstmt.setString(6, myAcct.getKeyVerifyCode());
             pstmt.setInt(7, myAcct.getPid());
             pstmt.setString(8, myAcct.getMac());
-            pstmt.setInt(9, myAcct.getDraworder());
+            pstmt.setDouble(9, myAcct.getDraworder());
             pstmt.executeUpdate();
+
+            myAcct.setId(lastInsertId()); // 回写插入的id
         } catch (SQLException e) {
             Logger.getLogger(DBService.class.getName()).log(Level.WARNING, e.getMessage(), e);
         }
@@ -75,7 +77,7 @@ public class DBService {
             pstmt.setString(6, myAcct.getKeyVerifyCode());
             pstmt.setInt(7, myAcct.getPid());
             pstmt.setString(8, myAcct.getMac());
-            pstmt.setInt(9, myAcct.getDraworder());
+            pstmt.setDouble(9, myAcct.getDraworder());
             pstmt.setInt(10, myAcct.getId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -103,7 +105,7 @@ public class DBService {
                 myAcct.setSalt(rs.getString("salt"));
                 myAcct.setKeyVerifyCode(rs.getString("key_verify_code"));
                 myAcct.setMac(rs.getString("mac"));
-                myAcct.setDraworder(rs.getInt("draworder"));
+                myAcct.setDraworder(rs.getDouble("draworder"));
                 result.add(myAcct);
             }
             return result;
@@ -113,6 +115,19 @@ public class DBService {
         return null;
     }
 
+
+    public int lastInsertId() {
+        String sql = "select last_insert_rowid() lastId";
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            int lastId = rs.getInt("lastId");
+            return lastId;
+        } catch (SQLException e) {
+            Logger.getLogger(DBService.class.getName()).log(Level.WARNING, "查询资料异常！" + e.getMessage(), e);
+        }
+        return -1;
+    }
 
     public void deleteMyAcct(TMyAcct myAcct) {
         String sql = "delete from myAcct  where id=?";
@@ -132,7 +147,7 @@ public class DBService {
         dbService.setDbFile("D:/mySCM/gitRepo/myAcct/db/myAcct.db");
         dbService.connect();
         TMyAcct myAcct = new TMyAcct();
-        myAcct.setContent("fdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasffdfasf");
+        myAcct.setContent("fdfasffdfasffdfasffdf");
         dbService.insertMyAcct(myAcct);
         List<TMyAcct> r = dbService.query("");
         r.stream().forEach(t -> {

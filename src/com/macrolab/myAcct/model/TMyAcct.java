@@ -50,13 +50,13 @@ public class TMyAcct {
     /**
      * 排序值
      */
-    int  draworder;
+    double  draworder;
 
-    public int getDraworder() {
+    public double getDraworder() {
         return draworder;
     }
 
-    public void setDraworder(int draworder) {
+    public void setDraworder(double draworder) {
         this.draworder = draworder;
     }
 

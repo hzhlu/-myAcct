@@ -1,10 +1,12 @@
 package com.macrolab.myAcct.controller;
 
 import com.macrolab.myAcct.Main;
+import com.macrolab.myAcct.common.CommUI;
 import com.macrolab.myAcct.model.TMyAcct;
 import com.macrolab.myAcct.service.MyAcctService;
 import com.macrolab.myAcct.util.DateUtil;
 import com.macrolab.myAcct.util.ToolUtil;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -13,13 +15,11 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Paint;
 import javafx.scene.web.HTMLEditor;
 
 import java.net.URL;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,6 +29,8 @@ public class MainController implements Initializable {
     public HTMLEditor htmlEditor;
     @FXML
     public Label labelId;
+    @FXML
+    public Slider slider;
     @FXML
     private Button btnSearch;
     @FXML
@@ -75,6 +77,9 @@ public class MainController implements Initializable {
     // 当前内容是否有变更
     boolean isContentChanged = false;
 
+    // 初始化标志
+    boolean initialize = true;
+
 
     private Main application;
 
@@ -94,18 +99,24 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         Logger.getLogger(MainController.class.getName()).log(Level.INFO, "MainController initialize ... ");
+        clearUI();
+        timerSave();  // 启动自动保存线程
+        initialize = false;  // 初始化结束
+    }
 
-        // 初始化界面控件状态
+    /**
+     * 初始化界面控件状态
+     */
+    private void clearUI() {
+        myAcct = new TMyAcct();
+        changeContent();
         labelContentChanged.setVisible(false);
-        labelCreateDate.setText("");
-        labelUpdateDate.setText("");
-        labelKeyVerifyCode.setText("****-****");
-        labelMAC.setText("****-****");
         labelId.setText("资料编号");
+        labelContentChanged.setText("");
         htmlEditor.setDisable(true);
         btnSave.setDisable(true);
-//        btnDelete.setDisable(true);
         btnBackupAcct.setDisable(true);
+        slider.setValue(0);
     }
 
     /**
@@ -131,11 +142,7 @@ public class MainController implements Initializable {
     private void actionKeyVerifyCode(ActionEvent event) {
         // 显示对话框
         String keyVerifyCode = myAcctService.keyVerifyCode(txtKey.getText());
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("信息提示");
-        alert.setHeaderText(null);
-        alert.setContentText("秘钥校验码：" + keyVerifyCode);
-        alert.showAndWait();
+        CommUI.infoBox(null, "秘钥校验码：" + keyVerifyCode);
     }
 
     @FXML
@@ -147,18 +154,13 @@ public class MainController implements Initializable {
     }
 
     @FXML
-    private void actionNew(ActionEvent event) throws Exception {
-        if (ToolUtil.isEmpty(txtAcctName.getText())) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("警告信息");
-            alert.setHeaderText("资料保护秘钥不能为空！");
-            alert.setContentText("为您的资料安全考虑，请先填写【资料保护秘钥】！");
-            alert.showAndWait();
+    private void actionNew(ActionEvent event) {
+        if (ToolUtil.isEmpty(txtKey.getText())) {
+            CommUI.warningBox("资料保护秘钥不能为空！", "为您的资料安全考虑，请先填写【资料保护秘钥】！");
             return;
         }
         txtAcctName.setText("我的资料" + DateUtil.getTime(new Date()));
         htmlEditor.setHtmlText("模板"); // todo 从模板中建立
-
         myAcct = new TMyAcct();
         myAcct.setName(txtAcctName.getText());
         myAcct.setContent(htmlEditor.getHtmlText());
@@ -173,31 +175,24 @@ public class MainController implements Initializable {
     @FXML
     private void actionSave(ActionEvent event) throws Exception {
         if (ToolUtil.isEmpty(txtAcctName.getText())) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("警告信息");
-            alert.setHeaderText("资料保护秘钥不能为空！");
-            alert.setContentText("为您的资料安全考虑，请先填写【资料保护秘钥】！");
-            alert.showAndWait();
+            CommUI.warningBox("资料保护秘钥不能为空！", "为您的资料安全考虑，请先填写【资料保护秘钥】！");
             return;
         }
         myAcct.setName(txtAcctName.getText());
         myAcct.setContent(htmlEditor.getHtmlText());
+        myAcct.setDraworder(slider.getValue());
         myAcctService.saveMyAcct(myAcct, txtKey.getText());
 
         // 刷新界面
         isContentChanged = false;
         changeContent();
+        loadList();
     }
+
 
     @FXML
     private void actionDelete(ActionEvent event) {
-        // todo 提示删除警告
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("资料删除");
-        alert.setHeaderText("删除资料【" + myAcct.getId() + " - " + myAcct.getName() + "】");
-        alert.setContentText("真的要删除吗?");
-
-        Optional<ButtonType> result = alert.showAndWait();
+        Optional<ButtonType> result = CommUI.confirmBox("删除资料【" + myAcct.getId() + " - " + myAcct.getName() + "】", "真的要删除吗?");
         if (result.get() == ButtonType.OK) {
             // ... user chose OK
             myAcctService.deleteMyAcct(myAcct);
@@ -213,6 +208,10 @@ public class MainController implements Initializable {
         // todo 获取上一次的 myAcct
 
 
+        if (ToolUtil.isEmpty(txtKey.getText())) {
+            CommUI.warningBox("资料保护秘钥不能为空！", "请先填写【资料保护秘钥】后再选择要查看的资料！");
+            return;
+        }
         myAcct = listAcct.getSelectionModel().getSelectedItem();
         changeContent();
 
@@ -224,6 +223,10 @@ public class MainController implements Initializable {
 //        lastMyAcct = myAcct.getContent();
 //        listAcct.get
 
+        if (ToolUtil.isEmpty(txtKey.getText())) {
+            CommUI.warningBox("资料保护秘钥不能为空！", "请先填写【资料保护秘钥】后再选择要查看的资料！");
+            return;
+        }
         myAcct = listAcct.getSelectionModel().getSelectedItem();
         changeContent();
     }
@@ -231,7 +234,7 @@ public class MainController implements Initializable {
     /**
      * 当更换资料记录时，变更右侧资料内容
      */
-    private void changeContent() throws Exception {
+    private void changeContent() {
         if (isContentChanged) {
             // todo 内容有变更，是否保存
         }
@@ -242,7 +245,13 @@ public class MainController implements Initializable {
             labelKeyVerifyCode.setText(myAcct.getKeyVerifyCode());
             labelCreateDate.setText(myAcct.getCreateDate());
             labelUpdateDate.setText(myAcct.getUpdateDate());
-            String content = myAcctService.decodeContent(myAcct, txtKey.getText());
+            labelContentChanged.setText("");
+            slider.setValue(myAcct.getDraworder());
+            String content = "";
+            if (ToolUtil.isNotEmpty(myAcctService)) {
+                content = myAcctService.decodeContent(myAcct, txtKey.getText());
+            }
+
             if (ToolUtil.isNotEmpty(content)) {
                 // 资料解读成功，可以编辑保存
                 htmlEditor.setHtmlText(content);
@@ -253,13 +262,9 @@ public class MainController implements Initializable {
                 htmlEditor.setHtmlText("!!! 当前资料受到秘钥保护,您不能读取 !!!");
                 htmlEditor.setDisable(true);
                 btnSave.setDisable(true);
-
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("资料读取");
-                alert.setHeaderText("资料解密失败！");
-                alert.setContentText("你正在读取的资料受到秘钥保护，与您使用的秘钥不符，不能解读当前资料内容！");
-                alert.showAndWait();
-
+//                if (!initialize) {
+//                    CommUI.errorBox("资料解密失败！", "你正在读取的资料受到秘钥保护，与您使用的秘钥不符，不能解读当前资料内容！");
+//                }
             }
             txtAcctName.setText(myAcct.getName());
         }
@@ -267,8 +272,49 @@ public class MainController implements Initializable {
 
     public void onContentChanged(KeyEvent keyEvent) {
         // 检查content的内容是否有变更，提示
-        isContentChanged = htmlEditor.getHtmlText().equals(lastMyAcct.getContent());
-        labelContentChanged.setVisible(isContentChanged);
+        isContentChanged = true;
+        labelContentChanged.setVisible(true);
+        labelContentChanged.setText("资料内容有变更");
+        labelContentChanged.setTextFill(Paint.valueOf("RED"));
     }
 
+
+    /**
+     * 每隔5秒检查是否需要保存当前资料
+     * <p>
+     * schedule(TimerTask task, long delay, long period)
+     * 设定指定任务task在指定延迟delay后进行固定延迟peroid的执行
+     */
+    @FXML
+    public void timerSave() {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            public void run() {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        //更新ui代码
+                        if (isContentChanged) {
+                            myAcct.setName(txtAcctName.getText());
+                            myAcct.setContent(htmlEditor.getHtmlText());
+                            myAcct.setDraworder(slider.getValue());
+                            myAcctService.saveMyAcct(myAcct, txtKey.getText());
+                            // 刷新界面
+                            isContentChanged = false;
+                            labelContentChanged.setText("资料内容已保存");
+                            labelContentChanged.setTextFill(Paint.valueOf("BLUE"));
+                            System.out.print("*");
+                        } else {
+                            if (System.currentTimeMillis() / 1000 % 100 > 90) {
+                                System.out.println(".");
+                            } else {
+                                System.out.print(".");
+                            }
+                        }
+
+                    }
+                });
+            }
+        }, 1000, 5000);
+    }
 }

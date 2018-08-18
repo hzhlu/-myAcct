@@ -1,14 +1,17 @@
 package com.macrolab.myAcct.service;
 
+import com.macrolab.myAcct.common.CommUI;
+import com.macrolab.myAcct.controller.MainController;
 import com.macrolab.myAcct.model.TMyAcct;
 import com.macrolab.myAcct.util.Base64;
 import com.macrolab.myAcct.util.DateUtil;
 import com.macrolab.myAcct.util.MyTools;
+import javafx.scene.paint.Paint;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MyAcctService {
 
@@ -41,15 +44,20 @@ public class MyAcctService {
      * @param myAcct
      * @param key
      * @return
-     * @throws UnsupportedEncodingException
      */
-    public String decodeContent(TMyAcct myAcct, String key) throws Exception {
+    public String decodeContent(TMyAcct myAcct, String key) {
         String codeContent = myAcct.getContent();
         String salt = myAcct.getSalt();
-        if (keyVerifyCode(key).equals(myAcct.getKeyVerifyCode())) {
-            String content = new String(MyTools.decryptAES(Base64.decode(codeContent.getBytes()), MyTools.md5(key + salt)), "UTF-8");
-            return content;
-        } else {
+        String currentKeyVerifyCode = keyVerifyCode(key);
+        if (!keyVerifyCode(key).equals(myAcct.getKeyVerifyCode())) {
+            CommUI.warningBox(null, "资料保密秘钥不正确！");
+            return null;
+        }
+
+        try {
+            return new String(MyTools.decryptAES(Base64.decode(codeContent.getBytes()), MyTools.md5(key + salt)), "UTF-8");
+        } catch (Exception e) {
+            CommUI.errorBox("解读资料内容时异常，您使用的秘钥可能不正确！", e.getMessage());
             return null;
         }
     }
@@ -61,13 +69,17 @@ public class MyAcctService {
      * @param key
      * @param salt
      * @return
-     * @throws UnsupportedEncodingException
      */
-    private String encodeContent(String content, String key, String salt) throws UnsupportedEncodingException {
-        return new String(Base64.encode(MyTools.encryptAES(content.getBytes("UTF-8"), MyTools.md5(key + salt))));
+    private String encodeContent(String content, String key, String salt) {
+        try {
+            return new String(Base64.encode(MyTools.encryptAES(content.getBytes("UTF-8"), MyTools.md5(key + salt))));
+        } catch (UnsupportedEncodingException e) {
+            Logger.getLogger(MyAcctService.class.getName()).log(Level.WARNING, "加密资料内容时异常！", e);
+            return null;
+        }
     }
 
-    public TMyAcct saveMyAcct(TMyAcct myAcct, String key) throws UnsupportedEncodingException {
+    public TMyAcct saveMyAcct(TMyAcct myAcct, String key) {
         String salt = MyTools.getStringPassword(16);
         myAcct.setUpdateDate(DateUtil.getTime(new Date()));
         myAcct.setMac(contentMAC(myAcct));
@@ -78,7 +90,7 @@ public class MyAcctService {
         return myAcct;
     }
 
-    public TMyAcct newMyAcct(TMyAcct myAcct, String key) throws UnsupportedEncodingException {
+    public TMyAcct newMyAcct(TMyAcct myAcct, String key) {
         String salt = MyTools.getStringPassword(16);
         myAcct.setCreateDate(DateUtil.getTime(new Date()));
         myAcct.setUpdateDate(DateUtil.getTime(new Date()));
@@ -118,4 +130,5 @@ public class MyAcctService {
     public void deleteMyAcct(TMyAcct myAcct) {
         dbService.deleteMyAcct(myAcct);
     }
+
 }

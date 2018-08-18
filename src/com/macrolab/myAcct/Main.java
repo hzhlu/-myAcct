@@ -29,8 +29,8 @@ public class Main extends Application {
     MyAcctService myAcctService = new MyAcctService();
 
     private Stage stage;
-    private final double MINIMUM_WINDOW_WIDTH = 1200;
-    private final double MINIMUM_WINDOW_HEIGHT = 800;
+    private final double WINDOW_WIDTH = 1245;
+    private final double WINDOW_HEIGHT = 770;
     private String title = "myAcct 2015 -> 2018";
 
 
@@ -56,7 +56,7 @@ public class Main extends Application {
             MainController mainController = (MainController) replaceSceneContent("myAcct.fxml");
             mainController.setApp(this);
             mainController.setMyAcctService(myAcctService);
-            mainController.loadList( );              // 加载页面数据
+            mainController.loadList(); // 加载页面数据
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -82,7 +82,7 @@ public class Main extends Application {
         } finally {
             in.close();
         }
-        Scene scene = new Scene(page, 1200, 800);
+        Scene scene = new Scene(page, WINDOW_WIDTH, WINDOW_HEIGHT);
         stage.setScene(scene);
         stage.sizeToScene();
         return (Initializable) loader.getController();
