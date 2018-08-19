@@ -124,7 +124,8 @@ public class MainController implements Initializable {
      * 初始化读取数据，加载到页面
      */
     public void loadList() {
-        List<TMyAcct> list = myAcctService.queryMyAcct(txtSearch.getText(), "");
+        String keyVerifyCode = myAcctService.keyVerifyCode(txtKey.getText());
+        List<TMyAcct> list = myAcctService.queryMyAcct(txtSearch.getText(), keyVerifyCode);
         ObservableList<TMyAcct> items = FXCollections.observableArrayList(list);
         listAcct.setItems(items);
     }

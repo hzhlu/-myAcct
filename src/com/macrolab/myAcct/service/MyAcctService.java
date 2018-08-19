@@ -6,6 +6,7 @@ import com.macrolab.myAcct.model.TMyAcct;
 import com.macrolab.myAcct.util.Base64;
 import com.macrolab.myAcct.util.DateUtil;
 import com.macrolab.myAcct.util.MyTools;
+import com.macrolab.myAcct.util.ToolUtil;
 import javafx.scene.paint.Paint;
 
 import java.io.UnsupportedEncodingException;
@@ -30,8 +31,13 @@ public class MyAcctService {
     public List<TMyAcct> queryMyAcct(String name, String keyVerifyCode) {
         List<TMyAcct> result = new ArrayList<>();
 
-        // 查询所有秘钥校验码相同的记录
-        result = dbService.query("and name like '%" + name + "%' ");
+        if (ToolUtil.isEmpty(name)) {
+            // 查询所有秘钥校验码相同的记录
+            result = dbService.query("");
+        } else {
+            // 查询所有秘钥校验码相同的记录
+            result = dbService.query("and name like '%" + name + "%' and key_verify_code = '" + keyVerifyCode + "'");
+        }
 
         // 对秘钥校验码不同的记录返回资料名称，不反资料内容
 
