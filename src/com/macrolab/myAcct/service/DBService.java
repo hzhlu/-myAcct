@@ -43,7 +43,6 @@ public class DBService {
 
     public void insertMyAcct(TMyAcct myAcct) {
         String sql = "INSERT INTO myAcct (name,content,create_date,update_date,salt,key_verify_code,pid,mac,draworder) VALUES(?,?,?,?,?,?,?,?,?)";
-
         try {
             Logger.getLogger(DBService.class.getName()).log(Level.INFO, sql);
             PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -88,7 +87,7 @@ public class DBService {
 
     public List<TMyAcct> query(String where) {
         String sql = "SELECT id,pid,name,content,create_date,update_date,salt,key_verify_code,mac,draworder FROM main.myAcct where 1=1 " + where + " order by draworder desc";
-        Logger.getLogger(DBService.class.getName()).log(Level.INFO, "querySQL ==>" + sql);
+        // Logger.getLogger(DBService.class.getName()).log(Level.INFO, "querySQL ==>" + sql);
         List<TMyAcct> result = new ArrayList<>();
         try {
             Statement stmt = conn.createStatement();
@@ -131,7 +130,7 @@ public class DBService {
 
     public void deleteMyAcct(TMyAcct myAcct) {
         String sql = "delete from myAcct  where id=?";
-        Logger.getLogger(DBService.class.getName()).log(Level.INFO, "querySQL ==>" + sql);
+        // Logger.getLogger(DBService.class.getName()).log(Level.INFO, "querySQL ==>" + sql);
         List<TMyAcct> result = new ArrayList<>();
         try {
             PreparedStatement pstmt = conn.prepareStatement(sql);

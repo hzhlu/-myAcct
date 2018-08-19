@@ -66,13 +66,13 @@ public class MainController implements Initializable {
     @FXML
     private Label labelPath;
     @FXML
-    private Label labelContentChanged;
+    private Label labelContentStatus;
 
     // 当前编辑的数据
     TMyAcct myAcct;
 
-    // 当前内容缓存，用于与变更内容对比 todo 变更内容对比
-    TMyAcct lastMyAcct;
+    // list中上次选中的记录
+    private int lastListFocusId = -1;
 
     // 当前内容是否有变更
     boolean isContentChanged = false;
@@ -84,6 +84,7 @@ public class MainController implements Initializable {
     private Main application;
 
     private MyAcctService myAcctService;
+
 
     public void setMyAcctService(MyAcctService myAcctService) {
         this.myAcctService = myAcctService;
@@ -110,13 +111,13 @@ public class MainController implements Initializable {
     private void clearUI() {
         myAcct = new TMyAcct();
         changeContent();
-        labelContentChanged.setVisible(false);
         labelId.setText("资料编号");
-        labelContentChanged.setText("");
+        labelContentStatus.setText("");
         htmlEditor.setDisable(true);
         btnSave.setDisable(true);
         btnBackupAcct.setDisable(true);
         slider.setValue(0);
+        lastListFocusId = -1;
     }
 
     /**
@@ -205,13 +206,16 @@ public class MainController implements Initializable {
 
     @FXML
     public void listOnMouseClicked(MouseEvent mouseEvent) throws Exception {
-        // todo 获取上一次的 myAcct
-
-
-        if (ToolUtil.isEmpty(txtKey.getText())) {
-            CommUI.warningBox("资料保护秘钥不能为空！", "请先填写【资料保护秘钥】后再选择要查看的资料！");
+        if (isContentChanged) {
+            CommUI.warningBox("资料尚未完成保存", "请稍等自动保存，或手动点击保存！");
+            listAcct.getSelectionModel().clearAndSelect(lastListFocusId);
             return;
         }
+
+        if (!validateKey()) {
+            return;
+        }
+
         myAcct = listAcct.getSelectionModel().getSelectedItem();
         changeContent();
 
@@ -219,33 +223,52 @@ public class MainController implements Initializable {
 
     @FXML
     public void listOnKeyReleased(KeyEvent keyEvent) throws Exception {
-        // todo 获取上一次的 myAcct
-//        lastMyAcct = myAcct.getContent();
-//        listAcct.get
-
-        if (ToolUtil.isEmpty(txtKey.getText())) {
-            CommUI.warningBox("资料保护秘钥不能为空！", "请先填写【资料保护秘钥】后再选择要查看的资料！");
+        if (isContentChanged) {
+            CommUI.warningBox("资料尚未完成保存", "请稍等自动保存，或手动点击保存！");
+            listAcct.getSelectionModel().clearAndSelect(lastListFocusId);
             return;
         }
+
+        if (!validateKey()) {
+            return;
+        }
+
         myAcct = listAcct.getSelectionModel().getSelectedItem();
         changeContent();
+    }
+
+    /**
+     * key 不能为空，不能小于4位字符
+     */
+    private boolean validateKey() {
+        if (ToolUtil.isEmpty(txtKey.getText())) {
+            CommUI.warningBox("资料保护秘钥不能为空！", "请先填写【资料保护秘钥】后再选择要查看的资料！");
+            labelContentStatus.setText("资料提取失败");
+            labelContentStatus.setTextFill(Paint.valueOf("RED"));
+            return false;
+        }
+
+        if (txtKey.getText().length() < 3) {
+            CommUI.warningBox("资料保护秘钥不能少于4个字符！", "请填写超过4字符的【资料保护秘钥】后再选择要查看的资料！");
+            labelContentStatus.setText("资料提取失败");
+            labelContentStatus.setTextFill(Paint.valueOf("RED"));
+            return false;
+        }
+
+
+        return true;
     }
 
     /**
      * 当更换资料记录时，变更右侧资料内容
      */
     private void changeContent() {
-        if (isContentChanged) {
-            // todo 内容有变更，是否保存
-        }
-
         if (ToolUtil.isNotEmpty(myAcct)) {
             labelId.setText(myAcct.getId() + "");
             labelMAC.setText(myAcct.getMac());
             labelKeyVerifyCode.setText(myAcct.getKeyVerifyCode());
             labelCreateDate.setText(myAcct.getCreateDate());
             labelUpdateDate.setText(myAcct.getUpdateDate());
-            labelContentChanged.setText("");
             slider.setValue(myAcct.getDraworder());
             String content = "";
             if (ToolUtil.isNotEmpty(myAcctService)) {
@@ -257,14 +280,22 @@ public class MainController implements Initializable {
                 htmlEditor.setHtmlText(content);
                 htmlEditor.setDisable(false);
                 btnSave.setDisable(false);
+                labelContentStatus.setText("资料提取成功");
+                labelContentStatus.setTextFill(Paint.valueOf("BLACK"));
+                // 记录list中对应的id
+                lastListFocusId = listAcct.getSelectionModel().getSelectedIndex();
             } else {
                 // 资料解读失败，禁用 保存功能，禁用编辑器
                 htmlEditor.setHtmlText("!!! 当前资料受到秘钥保护,您不能读取 !!!");
                 htmlEditor.setDisable(true);
                 btnSave.setDisable(true);
-//                if (!initialize) {
-//                    CommUI.errorBox("资料解密失败！", "你正在读取的资料受到秘钥保护，与您使用的秘钥不符，不能解读当前资料内容！");
-//                }
+                if (!initialize) {
+                    labelContentStatus.setText("资料提取失败");
+                    labelContentStatus.setTextFill(Paint.valueOf("RED"));
+                } else {
+                    labelContentStatus.setText("");// 首次状态置空
+                    initialize = false;
+                }
             }
             txtAcctName.setText(myAcct.getName());
         }
@@ -273,9 +304,9 @@ public class MainController implements Initializable {
     public void onContentChanged(KeyEvent keyEvent) {
         // 检查content的内容是否有变更，提示
         isContentChanged = true;
-        labelContentChanged.setVisible(true);
-        labelContentChanged.setText("资料内容有变更");
-        labelContentChanged.setTextFill(Paint.valueOf("RED"));
+        labelContentStatus.setVisible(true);
+        labelContentStatus.setText("资料内容有变更");
+        labelContentStatus.setTextFill(Paint.valueOf("RED"));
     }
 
 
@@ -301,8 +332,8 @@ public class MainController implements Initializable {
                             myAcctService.saveMyAcct(myAcct, txtKey.getText());
                             // 刷新界面
                             isContentChanged = false;
-                            labelContentChanged.setText("资料内容已保存");
-                            labelContentChanged.setTextFill(Paint.valueOf("BLUE"));
+                            labelContentStatus.setText("资料内容已保存");
+                            labelContentStatus.setTextFill(Paint.valueOf("BLUE"));
                             System.out.print("*");
                         } else {
                             if (System.currentTimeMillis() / 1000 % 100 > 90) {
@@ -317,4 +348,5 @@ public class MainController implements Initializable {
             }
         }, 1000, 5000);
     }
+
 }
