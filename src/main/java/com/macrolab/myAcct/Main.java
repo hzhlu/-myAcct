@@ -71,7 +71,7 @@ public class Main extends Application {
      */
     private Initializable replaceSceneContent(String fxml) throws Exception {
         FXMLLoader loader = new FXMLLoader();
-        File fileFXML = new File(workpath + "/resource/" + fxml);
+        File fileFXML = new File(workpath + "/src/main/resources/" + fxml);
         FileInputStream fis = new FileInputStream(fileFXML);
         InputStream in = fis;
         loader.setBuilderFactory(new JavaFXBuilderFactory());

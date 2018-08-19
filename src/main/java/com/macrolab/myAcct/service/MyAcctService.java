@@ -29,7 +29,7 @@ public class MyAcctService {
      * @param name
      */
     public List<TMyAcct> queryMyAcct(String name, String keyVerifyCode) {
-        List<TMyAcct> result = new ArrayList<>();
+        List<TMyAcct> result = new ArrayList();
 
         if (ToolUtil.isEmpty(name)) {
             // 查询所有秘钥校验码相同的记录

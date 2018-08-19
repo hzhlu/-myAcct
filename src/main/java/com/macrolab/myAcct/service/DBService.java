@@ -88,7 +88,7 @@ public class DBService {
     public List<TMyAcct> query(String where) {
         String sql = "SELECT id,pid,name,content,create_date,update_date,salt,key_verify_code,mac,draworder FROM main.myAcct where 1=1 " + where + " order by draworder desc";
         Logger.getLogger(DBService.class.getName()).log(Level.INFO, "querySQL ==>" + sql);
-        List<TMyAcct> result = new ArrayList<>();
+        List<TMyAcct> result = new ArrayList();
         try {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
@@ -131,7 +131,7 @@ public class DBService {
     public void deleteMyAcct(TMyAcct myAcct) {
         String sql = "delete from myAcct  where id=?";
         Logger.getLogger(DBService.class.getName()).log(Level.INFO, "querySQL ==>" + sql);
-        List<TMyAcct> result = new ArrayList<>();
+        List<TMyAcct> result = new ArrayList<TMyAcct>();
         try {
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, myAcct.getId());
@@ -142,16 +142,16 @@ public class DBService {
     }
 
     public static void main(String[] args) {
-        DBService dbService = new DBService();
-        dbService.setDbFile("D:/mySCM/gitRepo/myAcct/db/myAcct.db");
-        dbService.connect();
-        TMyAcct myAcct = new TMyAcct();
-        myAcct.setContent("fdfasffdfasffdfasffdf");
-        dbService.insertMyAcct(myAcct);
-        List<TMyAcct> r = dbService.query("");
-        r.stream().forEach(t -> {
-            System.out.println(t);
-        });
+//        DBService dbService = new DBService();
+//        dbService.setDbFile("D:/mySCM/gitRepo/myAcct/db/myAcct.db");
+//        dbService.connect();
+//        TMyAcct myAcct = new TMyAcct();
+//        myAcct.setContent("fdfasffdfasffdfasffdf");
+//        dbService.insertMyAcct(myAcct);
+//        List<TMyAcct> r = dbService.query("");
+//        r.stream().forEach(t -> {
+//            System.out.println(t);
+//        });
     }
 
 }
