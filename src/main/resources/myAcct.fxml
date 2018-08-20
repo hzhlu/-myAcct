@@ -28,12 +28,11 @@
         </Label>
         <ToolBar layoutX="1.0" prefHeight="33.0" prefWidth="1250.0">
             <items>
-                <ChoiceBox fx:id="choiceDBFile" prefHeight="23.0" prefWidth="242.0" />
+                <ChoiceBox fx:id="choiceBoxDBFile" prefHeight="23.0" prefWidth="242.0" />
             <Separator prefHeight="23.0" prefWidth="22.0" />
-                <PasswordField fx:id="txtKey" prefHeight="23.0" prefWidth="148.0" promptText="资料库保护秘钥" />
+                <PasswordField fx:id="txtKey" onKeyReleased="#onCompleteKeyInput" prefHeight="23.0" prefWidth="148.0" promptText="资料库保护秘钥" />
                 <Button fx:id="btnKeyVerifyCode" mnemonicParsing="false" onAction="#actionKeyVerifyCode" text="秘钥校验码" />
                 <Separator prefHeight="23.0" prefWidth="30.0" />
-                <Button fx:id="btnCreateAcct" mnemonicParsing="false" onAction="#actionCreateAcct" text="创建资料库" />
                 <Button fx:id="btnBackupAcct" mnemonicParsing="false" onAction="#actionBackupAcct" text="备份资料库" />
                 <Separator prefHeight="23.0" prefWidth="40.0" />
                 <Label text="资料操作" />

@@ -26,8 +26,6 @@ import java.util.logging.Logger;
 public class Main extends Application {
     public static String workpath = System.getProperty("user.dir");
 
-    MyAcctService myAcctService = new MyAcctService();
-
     private Stage stage;
     private final double WINDOW_WIDTH = 1245;
     private final double WINDOW_HEIGHT = 770;
@@ -37,10 +35,6 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         System.out.println("工作目录：" + workpath);
-
-        // 初始化数据源
-        appinit();
-
         // 初始化界面
         stage = primaryStage;
         stage.setTitle(title);
@@ -55,8 +49,8 @@ public class Main extends Application {
         try {
             MainController mainController = (MainController) replaceSceneContent("myAcct.fxml");
             mainController.setApp(this);
-            mainController.setMyAcctService(myAcctService);
-            mainController.loadList(); // 加载页面数据
+            mainController.loadDBFile(workpath + "/db"); // 加在工作目录下的数据文件
+            mainController.choiceDefaultDBFile();  // 缺省加在第一个库文件
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -87,17 +81,6 @@ public class Main extends Application {
         stage.sizeToScene();
         return (Initializable) loader.getController();
     }
-
-    private void appinit() {
-        // 初始化数据库
-        System.out.println("初始化数据库,加载默认资料库myAcct.db");
-        AppContext.dbService = new DBService();
-        AppContext.dbService.setDbFile("D:/mySCM/gitRepo/myAcct/db/myAcct.db");
-        AppContext.dbService.connect();
-
-        myAcctService.setDbService(AppContext.dbService);
-    }
-
 
     public static void main(String[] args) {
         launch(args);

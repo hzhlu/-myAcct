@@ -1,7 +1,10 @@
 package com.macrolab.myAcct.service;
 
+import com.macrolab.myAcct.Main;
+import com.macrolab.myAcct.common.AppContext;
 import com.macrolab.myAcct.common.CommUI;
 import com.macrolab.myAcct.controller.MainController;
+import com.macrolab.myAcct.model.DBFile;
 import com.macrolab.myAcct.model.TMyAcct;
 import com.macrolab.myAcct.util.Base64;
 import com.macrolab.myAcct.util.DateUtil;
@@ -9,6 +12,8 @@ import com.macrolab.myAcct.util.MyTools;
 import com.macrolab.myAcct.util.ToolUtil;
 import javafx.scene.paint.Paint;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.logging.Level;
@@ -19,8 +24,9 @@ public class MyAcctService {
     DBService dbService;
 
     // 注入dbService；
-    public void setDbService(DBService dbService) {
-        this.dbService = dbService;
+    public void setDbService(DBFile dbFile) {
+        dbService = new DBService(dbFile);
+        AppContext.dbService = dbService;
     }
 
     /**
@@ -41,6 +47,10 @@ public class MyAcctService {
 
         // 对秘钥校验码不同的记录返回资料名称，不反资料内容
 
+        result.stream().filter(t -> !t.getKeyVerifyCode().equals(keyVerifyCode)).forEach(t -> {
+            t.setName("【锁】" + t.getName());
+        });
+
         return result;
     }
 
@@ -55,15 +65,19 @@ public class MyAcctService {
         String codeContent = myAcct.getContent();
         String salt = myAcct.getSalt();
         String currentKeyVerifyCode = keyVerifyCode(key);
-        if (!keyVerifyCode(key).equals(myAcct.getKeyVerifyCode())) {
-            CommUI.warningBox(null, "资料保密秘钥不正确！");
+        if (!currentKeyVerifyCode.equals(myAcct.getKeyVerifyCode())) {
+//            CommUI.warningBox(null, "资料保密秘钥不正确！");
+            if (ToolUtil.isNotEmpty(myAcct.getContent())) {
+                Logger.getLogger(MyAcctService.class.getName()).log(Level.WARNING, "提取资料失败，资料保密秘钥不正确！");
+            }
             return null;
         }
 
         try {
             return new String(MyTools.decryptAES(Base64.decode(codeContent.getBytes()), MyTools.md5(key + salt)), "UTF-8");
         } catch (Exception e) {
-            CommUI.errorBox("解读资料内容时异常，您使用的秘钥可能不正确！", e.getMessage());
+//            CommUI.errorBox("解读资料内容时异常，您使用的秘钥可能不正确！", e.getMessage());
+            Logger.getLogger(MyAcctService.class.getName()).log(Level.WARNING, "提取资料失败，资料保密秘钥不正确！");
             return null;
         }
     }
@@ -137,4 +151,28 @@ public class MyAcctService {
         dbService.deleteMyAcct(myAcct);
     }
 
+    /**
+     * 获取工作目录下的数据文件列表
+     *
+     * @return
+     */
+    public List<DBFile> getDBFilelist(String path) {
+        ArrayList<DBFile> files = new ArrayList<>();
+        File file = new File(path);
+        // 只提取工作目录下 后缀名为 *.myAcctDB 的数据库文件
+        File[] tempList = file.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.endsWith("myAcctDB");
+            }
+        });
+
+        for (int i = 0; i < tempList.length; i++) {
+            if (tempList[i].isFile()) {
+                DBFile dbFile = new DBFile(tempList[i]);
+                files.add(dbFile);
+            }
+        }
+        return files;
+    }
 }

@@ -1,27 +1,35 @@
 package com.macrolab.myAcct.controller;
 
 import com.macrolab.myAcct.Main;
+import com.macrolab.myAcct.common.AppContext;
 import com.macrolab.myAcct.common.CommUI;
+import com.macrolab.myAcct.model.DBFile;
 import com.macrolab.myAcct.model.TMyAcct;
+import com.macrolab.myAcct.service.DBService;
 import com.macrolab.myAcct.service.MyAcctService;
 import com.macrolab.myAcct.util.DateUtil;
 import com.macrolab.myAcct.util.ToolUtil;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Paint;
 import javafx.scene.web.HTMLEditor;
 
+import java.io.File;
 import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class MainController implements Initializable {
 
@@ -31,6 +39,8 @@ public class MainController implements Initializable {
     public Label labelId;
     @FXML
     public Slider slider;
+    @FXML
+    public ChoiceBox<DBFile> choiceBoxDBFile;
     @FXML
     private Button btnSearch;
     @FXML
@@ -42,13 +52,9 @@ public class MainController implements Initializable {
     @FXML
     private Label labelKeyVerifyCode;
     @FXML
-    private ChoiceBox<?> choiceDBFile;
-    @FXML
     private PasswordField txtKey;
     @FXML
     private Button btnKeyVerifyCode;
-    @FXML
-    private Button btnCreateAcct;
     @FXML
     private Button btnBackupAcct;
     @FXML
@@ -71,6 +77,8 @@ public class MainController implements Initializable {
     // 当前编辑的数据
     TMyAcct myAcct;
 
+    List<DBFile> listDBFile;
+
     // list中上次选中的记录
     private int lastListFocusId = -1;
 
@@ -80,15 +88,9 @@ public class MainController implements Initializable {
     // 初始化标志
     boolean initialize = true;
 
-
-    private Main application;
-
     private MyAcctService myAcctService;
 
-
-    public void setMyAcctService(MyAcctService myAcctService) {
-        this.myAcctService = myAcctService;
-    }
+    private Main application;
 
     public void setApp(Main application) {
         this.application = application;
@@ -100,9 +102,22 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         Logger.getLogger(MainController.class.getName()).log(Level.INFO, "MainController initialize ... ");
+        myAcctService = new MyAcctService();
         clearUI();
         timerSave();  // 启动自动保存线程
+        choiceBoxDBFile.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                DBFile dbFile = listDBFile.get((Integer) newValue);
+                if (ToolUtil.isNotEmpty(dbFile)) {
+                    Logger.getLogger(MainController.class.getName()).log(Level.INFO, "切换到【" + dbFile.getName() + "】资料库");
+                    myAcctService.setDbService(dbFile);
+                    loadList();
+                }
+            }
+        });
         initialize = false;  // 初始化结束
+        Logger.getLogger(MainController.class.getName()).log(Level.INFO, "MainController initialize complete!");
     }
 
     /**
@@ -115,7 +130,6 @@ public class MainController implements Initializable {
         labelContentStatus.setText("");
         htmlEditor.setDisable(true);
         btnSave.setDisable(true);
-        btnBackupAcct.setDisable(true);
         slider.setValue(0);
         lastListFocusId = -1;
     }
@@ -124,10 +138,27 @@ public class MainController implements Initializable {
      * 初始化读取数据，加载到页面
      */
     public void loadList() {
+        Logger.getLogger(MainController.class.getName()).log(Level.INFO, "加载资料库数据");
         String keyVerifyCode = myAcctService.keyVerifyCode(txtKey.getText());
         List<TMyAcct> list = myAcctService.queryMyAcct(txtSearch.getText(), keyVerifyCode);
         ObservableList<TMyAcct> items = FXCollections.observableArrayList(list);
         listAcct.setItems(items);
+    }
+
+    // 缺省加在第一个库文件
+    public void choiceDefaultDBFile() {
+        choiceBoxDBFile.getSelectionModel().clearAndSelect(0);
+    }
+
+    /**
+     * 初始化，加载数据目录下的sqliteDB文件
+     *
+     * @param path
+     */
+    public void loadDBFile(String path) {
+        listDBFile = myAcctService.getDBFilelist(path);
+        ObservableList<DBFile> items = FXCollections.observableArrayList(listDBFile);
+        choiceBoxDBFile.setItems(items);
     }
 
 
@@ -136,9 +167,6 @@ public class MainController implements Initializable {
         loadList();
     }
 
-    @FXML
-    private void listOnEditStart(ListView.EditEvent<String> event) {
-    }
 
     @FXML
     private void actionKeyVerifyCode(ActionEvent event) {
@@ -147,9 +175,7 @@ public class MainController implements Initializable {
         CommUI.infoBox(null, "秘钥校验码：" + keyVerifyCode);
     }
 
-    @FXML
-    private void actionCreateAcct(ActionEvent event) {
-    }
+
 
     @FXML
     private void actionBackupAcct(ActionEvent event) {
@@ -271,11 +297,7 @@ public class MainController implements Initializable {
             labelCreateDate.setText(myAcct.getCreateDate());
             labelUpdateDate.setText(myAcct.getUpdateDate());
             slider.setValue(myAcct.getDraworder());
-            String content = "";
-            if (ToolUtil.isNotEmpty(myAcctService)) {
-                content = myAcctService.decodeContent(myAcct, txtKey.getText());
-            }
-
+            String content = myAcctService.decodeContent(myAcct, txtKey.getText());
             if (ToolUtil.isNotEmpty(content)) {
                 // 资料解读成功，可以编辑保存
                 htmlEditor.setHtmlText(content);
@@ -293,6 +315,7 @@ public class MainController implements Initializable {
                 if (!initialize) {
                     labelContentStatus.setText("资料提取失败");
                     labelContentStatus.setTextFill(Paint.valueOf("RED"));
+                    CommUI.warningBox("资料提取失败", "资料秘钥不正确！");
                 } else {
                     labelContentStatus.setText("");// 首次状态置空
                     initialize = false;
@@ -350,4 +373,13 @@ public class MainController implements Initializable {
         }, 1000, 5000);
     }
 
+    public void onCompleteKeyInput(KeyEvent keyEvent) {
+        if (keyEvent.getCode() == KeyCode.ENTER) {
+            if (txtKey.getText().length() < 4) {
+                CommUI.warningBox(null, "资料保护秘钥不能少于4位字符！");
+            } else {
+                loadList();
+            }
+        }
+    }
 }

@@ -1,7 +1,9 @@
 package com.macrolab.myAcct.service;
 
+import com.macrolab.myAcct.model.DBFile;
 import com.macrolab.myAcct.model.TMyAcct;
 
+import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,31 +12,21 @@ import java.util.logging.Logger;
 
 public class DBService {
     Connection conn;
-    String dbFile;
 
-    public Connection getConn() {
-        return conn;
-    }
+    DBFile dbFile;
 
-    public void setConn(Connection conn) {
-        this.conn = conn;
-    }
-
-    public String getDbFile() {
-        return dbFile;
-    }
-
-    public void setDbFile(String dbFile) {
+    public DBService(DBFile dbFile) {
         this.dbFile = dbFile;
+        connect();
     }
-
 
     public Connection connect() {
         // SQLite connection string
-        String url = "jdbc:sqlite:" + dbFile;
+        String url = "jdbc:sqlite:" + dbFile.getDbFile().getAbsolutePath();
         this.conn = null;
         try {
             this.conn = DriverManager.getConnection(url);
+            Logger.getLogger(DBService.class.getName()).log(Level.INFO, "连接数据库【" + dbFile.getName() + "】 ");
         } catch (SQLException e) {
             Logger.getLogger(DBService.class.getName()).log(Level.WARNING, "连接数据库【" + url + "】异常：" + e.getMessage());
         }
@@ -44,7 +36,7 @@ public class DBService {
     public void insertMyAcct(TMyAcct myAcct) {
         String sql = "INSERT INTO myAcct (name,content,create_date,update_date,salt,key_verify_code,pid,mac,draworder) VALUES(?,?,?,?,?,?,?,?,?)";
         try {
-            Logger.getLogger(DBService.class.getName()).log(Level.INFO, sql);
+            Logger.getLogger(DBService.class.getName()).log(Level.INFO, "插入【" + dbFile.getName() + "】" + sql);
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, myAcct.getName());
             pstmt.setString(2, myAcct.getContent());
@@ -66,7 +58,7 @@ public class DBService {
     public void updateMyAcct(TMyAcct myAcct) {
         String sql = "update myAcct set name=?,content=?,create_date=?,update_date=?,salt=?,key_verify_code=?,pid=?,mac=?,draworder=? where id=?";
         try {
-            Logger.getLogger(DBService.class.getName()).log(Level.INFO, sql);
+            Logger.getLogger(DBService.class.getName()).log(Level.INFO, "更新【" + dbFile.getName() + "】" + sql);
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, myAcct.getName());
             pstmt.setString(2, myAcct.getContent());
@@ -87,7 +79,7 @@ public class DBService {
 
     public List<TMyAcct> query(String where) {
         String sql = "SELECT id,pid,name,content,create_date,update_date,salt,key_verify_code,mac,draworder FROM main.myAcct where 1=1 " + where + " order by draworder desc";
-        Logger.getLogger(DBService.class.getName()).log(Level.INFO, "querySQL ==>" + sql);
+        Logger.getLogger(DBService.class.getName()).log(Level.INFO, "查询【" + dbFile.getName() + "】" + sql);
         List<TMyAcct> result = new ArrayList();
         try {
             Statement stmt = conn.createStatement();
@@ -130,7 +122,7 @@ public class DBService {
 
     public void deleteMyAcct(TMyAcct myAcct) {
         String sql = "delete from myAcct  where id=?";
-        Logger.getLogger(DBService.class.getName()).log(Level.INFO, "querySQL ==>" + sql);
+        Logger.getLogger(DBService.class.getName()).log(Level.INFO, "删除【" + dbFile.getName() + "】" + sql);
         List<TMyAcct> result = new ArrayList<TMyAcct>();
         try {
             PreparedStatement pstmt = conn.prepareStatement(sql);
