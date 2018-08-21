@@ -75,6 +75,10 @@ public class MainController implements Initializable {
     // 当前编辑的数据
     TMyAcct myAcct;
 
+    // list控件对应的数据
+    List<TMyAcct> myAcctList;
+
+    // choiceBox控件对应的数据
     List<DBFile> listDBFile;
 
     // list中上次选中的记录
@@ -82,6 +86,9 @@ public class MainController implements Initializable {
 
     // 当前内容是否有变更
     boolean isContentChanged = false;
+
+    // 当创建一个新记录时设置为true，用于更新首次编写的内容
+    boolean hasNewMyAcct = false;
 
     // 初始化标志
     boolean initialize = true;
@@ -113,6 +120,17 @@ public class MainController implements Initializable {
                 }
             }
         });
+
+//        slider.valueProperty().addListener(new ChangeListener<Number>() {
+//            public void changed(ObservableValue<? extends Number> ov, Number old_val, Number new_val) {
+//                logger.debug("资料【" + myAcct.getId() + "】优先级调整：" + Math.round(new_val.doubleValue()));
+//                isContentChanged = true;
+//                labelContentStatus.setText("资料优先级调整为：" + Math.round(new_val.doubleValue()));
+//                labelContentStatus.setTextFill(Paint.valueOf("RED"));
+//            }
+//        });
+
+
         initialize = false;  // 初始化结束
     }
 
@@ -125,9 +143,25 @@ public class MainController implements Initializable {
         labelId.setText("资料编号");
         labelContentStatus.setText("");
         htmlEditor.setDisable(true);
+        txtKey.setText("");
+        btnNew.setDisable(true);
         btnSave.setDisable(true);
         slider.setValue(0);
+        slider.setDisable(true);
         lastListFocusId = -1;
+
+        // slider优先级 tooltip
+        final Tooltip tooltip = new Tooltip();
+        tooltip.setText("资料优先级，数值高，优先级高");
+        slider.setTooltip(tooltip);
+//
+//        Image image = null;
+//        try {
+//            image = new Image(new FileInputStream(Main.workpath+"\\src\\main\\resources\\images/warn.png"));
+//            tooltip.setGraphic(new ImageView(image));
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
     }
 
     /**
@@ -135,8 +169,8 @@ public class MainController implements Initializable {
      */
     public void loadList() {
         String keyVerifyCode = myAcctService.keyVerifyCode(txtKey.getText());
-        List<TMyAcct> list = myAcctService.queryMyAcct(txtSearch.getText(), keyVerifyCode);
-        ObservableList<TMyAcct> items = FXCollections.observableArrayList(list);
+        myAcctList = myAcctService.queryMyAcct(txtSearch.getText(), keyVerifyCode);
+        ObservableList<TMyAcct> items = FXCollections.observableArrayList(myAcctList);
         listAcct.setItems(items);
     }
 
@@ -181,17 +215,35 @@ public class MainController implements Initializable {
             CommUI.warningBox("资料保护秘钥不能为空！", "为您的资料安全考虑，请先填写【资料保护秘钥】！");
             return;
         }
+
+        if (isContentChanged) {
+            CommUI.warningBox("资料尚未完成保存", "请稍等自动保存，或手动点击保存！");
+            listAcct.getSelectionModel().clearAndSelect(lastListFocusId);
+            return;
+        }
+
         txtAcctName.setText("我的资料" + DateUtil.getTime(new Date()));
         htmlEditor.setHtmlText("模板"); // todo 从模板中建立
         myAcct = new TMyAcct();
+        isContentChanged = true;
         myAcct.setName(txtAcctName.getText());
-        myAcct.setContent(htmlEditor.getHtmlText());
-        myAcctService.newMyAcct(myAcct, txtKey.getText());
+        myAcct.setContent(htmlEditor.getHtmlText());  // 明文
+        myAcct = myAcctService.newMyAcct(myAcct, txtKey.getText());
 
         // 刷新界面
-        isContentChanged = false;
-        changeContent();
         loadList();
+
+        // 选中刚添加的新数据
+        listAcct.requestFocus();  // 设置列表控件获得焦点
+        for (int i = 0; i < myAcctList.size(); i++) {
+            if (myAcctList.get(i).getId() == myAcct.getId()) {
+                listAcct.getSelectionModel().select(i);
+            }
+        }
+
+        changeContent();
+
+        hasNewMyAcct = true; // 首次新建的内容，需要更新
     }
 
     @FXML
@@ -201,7 +253,7 @@ public class MainController implements Initializable {
             return;
         }
         myAcct.setName(txtAcctName.getText());
-        myAcct.setContent(htmlEditor.getHtmlText());
+        myAcct.setContent(htmlEditor.getHtmlText()); // 明文
         myAcct.setDraworder(slider.getValue());
         myAcctService.saveMyAcct(myAcct, txtKey.getText());
 
@@ -276,7 +328,6 @@ public class MainController implements Initializable {
             return false;
         }
 
-
         return true;
     }
 
@@ -284,6 +335,11 @@ public class MainController implements Initializable {
      * 当更换资料记录时，变更右侧资料内容
      */
     private void changeContent() {
+        if (hasNewMyAcct) {
+            loadList();
+            hasNewMyAcct = false;
+        }
+
         if (ToolUtil.isNotEmpty(myAcct)) {
             labelId.setText(myAcct.getId() + "");
             labelMAC.setText(myAcct.getMac());
@@ -297,6 +353,7 @@ public class MainController implements Initializable {
                 htmlEditor.setHtmlText(content);
                 htmlEditor.setDisable(false);
                 btnSave.setDisable(false);
+                slider.setDisable(false);
                 labelContentStatus.setText("资料提取成功");
                 labelContentStatus.setTextFill(Paint.valueOf("BLACK"));
                 // 记录list中对应的id
@@ -319,8 +376,14 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * htmlEditor 内容变更
+     *
+     * @param keyEvent
+     */
     public void onContentChanged(KeyEvent keyEvent) {
         // 检查content的内容是否有变更，提示
+        logger.trace("资料【" + myAcct.getId() + "】内容有变更");
         isContentChanged = true;
         labelContentStatus.setVisible(true);
         labelContentStatus.setText("资料内容有变更");
@@ -353,6 +416,7 @@ public class MainController implements Initializable {
                             labelContentStatus.setText("资料内容已保存");
                             labelContentStatus.setTextFill(Paint.valueOf("BLUE"));
                             System.out.print("*");
+                            loadList();
                         } else {
                             if (System.currentTimeMillis() / 1000 % 100 > 90) {
                                 System.out.println(".");
@@ -371,9 +435,20 @@ public class MainController implements Initializable {
         if (keyEvent.getCode() == KeyCode.ENTER) {
             if (txtKey.getText().length() < 4) {
                 CommUI.warningBox(null, "资料保护秘钥不能少于4位字符！");
+                btnNew.setDisable(true);
+                btnSave.setDisable(true);
             } else {
+                btnNew.setDisable(false);
+                btnSave.setDisable(false);
                 loadList();
             }
         }
+    }
+
+    public void onSliderChange(MouseEvent mouseEvent) {
+        logger.debug("资料【" + myAcct.getId() + "】优先级调整：" + Math.round(slider.getValue()));
+        isContentChanged = true;
+        labelContentStatus.setText("资料优先级调整为：" + Math.round(slider.getValue()));
+        labelContentStatus.setTextFill(Paint.valueOf("RED"));
     }
 }

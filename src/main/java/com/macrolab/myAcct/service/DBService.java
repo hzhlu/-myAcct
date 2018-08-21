@@ -2,11 +2,13 @@ package com.macrolab.myAcct.service;
 
 import com.macrolab.myAcct.model.DBFile;
 import com.macrolab.myAcct.model.TMyAcct;
+import com.macrolab.myAcct.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class DBService {
@@ -38,25 +40,17 @@ public class DBService {
         return conn;
     }
 
-    public void insertMyAcct(TMyAcct myAcct) {
-        String sql = "INSERT INTO myAcct (name,content,create_date,update_date,salt,key_verify_code,pid,mac,draworder) VALUES(?,?,?,?,?,?,?,?,?)";
+    public int insertMyAcct() {
+        String sql = "INSERT INTO myAcct (create_date) VALUES(?)";
         try {
             logger.debug("插入【" + dbFile.getName() + "】" + sql);
             PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, myAcct.getName());
-            pstmt.setString(2, myAcct.getContent());
-            pstmt.setString(3, myAcct.getCreateDate());
-            pstmt.setString(4, myAcct.getUpdateDate());
-            pstmt.setString(5, myAcct.getSalt());
-            pstmt.setString(6, myAcct.getKeyVerifyCode());
-            pstmt.setInt(7, myAcct.getPid());
-            pstmt.setString(8, myAcct.getMac());
-            pstmt.setDouble(9, myAcct.getDraworder());
+            pstmt.setString(1, DateUtil.getTime(new Date()));
             pstmt.executeUpdate();
-
-            myAcct.setId(lastInsertId()); // 回写插入的id
+            return lastInsertId(); // 返回 插入的id
         } catch (SQLException e) {
-            logger.error("插入【" + dbFile.getName() + " ==> " + myAcct.getName() + "】异常！" + e.getMessage(), e);
+            logger.error("插入【" + dbFile.getName() + "】异常！" + e.getMessage(), e);
+            return -1;
         }
     }
 
@@ -73,7 +67,7 @@ public class DBService {
             pstmt.setString(6, myAcct.getKeyVerifyCode());
             pstmt.setInt(7, myAcct.getPid());
             pstmt.setString(8, myAcct.getMac());
-            pstmt.setDouble(9, myAcct.getDraworder());
+            pstmt.setDouble(9, Math.round(myAcct.getDraworder()));
             pstmt.setInt(10, myAcct.getId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -83,7 +77,7 @@ public class DBService {
 
 
     public List<TMyAcct> query(String where) {
-        String sql = "SELECT id,pid,name,content,create_date,update_date,salt,key_verify_code,mac,draworder FROM main.myAcct where 1=1 " + where + " order by draworder desc";
+        String sql = "SELECT id,pid,name,content,create_date,update_date,salt,key_verify_code,mac,draworder FROM main.myAcct where 1=1 " + where + " order by draworder desc, id desc";
         logger.debug("查询【" + dbFile.getName() + "】" + sql);
         List<TMyAcct> result = new ArrayList();
         try {

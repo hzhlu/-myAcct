@@ -109,15 +109,9 @@ public class MyAcctService {
     }
 
     public TMyAcct newMyAcct(TMyAcct myAcct, String key) {
-        String salt = MyTools.getStringPassword(16);
-        myAcct.setCreateDate(DateUtil.getTime(new Date()));
-        myAcct.setUpdateDate(DateUtil.getTime(new Date()));
-        myAcct.setMac(contentMAC(myAcct));
-        myAcct.setKeyVerifyCode(keyVerifyCode(key));
-        myAcct.setSalt(salt);
-        myAcct.setContent(encodeContent(myAcct.getContent(), key, salt));
-        dbService.insertMyAcct(myAcct);
-        return myAcct;
+        int id = dbService.insertMyAcct();
+        myAcct.setId(id);
+        return saveMyAcct(myAcct, key);
     }
 
     /**
