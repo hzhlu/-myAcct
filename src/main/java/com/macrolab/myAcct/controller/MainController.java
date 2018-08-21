@@ -1,7 +1,6 @@
 package com.macrolab.myAcct.controller;
 
 import com.macrolab.myAcct.Main;
-import com.macrolab.myAcct.common.AppContext;
 import com.macrolab.myAcct.common.CommUI;
 import com.macrolab.myAcct.model.DBFile;
 import com.macrolab.myAcct.model.TMyAcct;
@@ -23,15 +22,14 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Paint;
 import javafx.scene.web.HTMLEditor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.net.URL;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class MainController implements Initializable {
+    Logger logger = LoggerFactory.getLogger(DBService.class);
 
     @FXML
     public HTMLEditor htmlEditor;
@@ -101,7 +99,6 @@ public class MainController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        Logger.getLogger(MainController.class.getName()).log(Level.INFO, "MainController initialize ... ");
         myAcctService = new MyAcctService();
         clearUI();
         timerSave();  // 启动自动保存线程
@@ -110,14 +107,13 @@ public class MainController implements Initializable {
             public void changed(ObservableValue observable, Object oldValue, Object newValue) {
                 DBFile dbFile = listDBFile.get((Integer) newValue);
                 if (ToolUtil.isNotEmpty(dbFile)) {
-                    Logger.getLogger(MainController.class.getName()).log(Level.INFO, "切换到【" + dbFile.getName() + "】资料库");
+                    logger.info("切换到【" + dbFile.getName() + "】资料库");
                     myAcctService.setDbService(dbFile);
                     loadList();
                 }
             }
         });
         initialize = false;  // 初始化结束
-        Logger.getLogger(MainController.class.getName()).log(Level.INFO, "MainController initialize complete!");
     }
 
     /**
@@ -138,7 +134,6 @@ public class MainController implements Initializable {
      * 初始化读取数据，加载到页面
      */
     public void loadList() {
-        Logger.getLogger(MainController.class.getName()).log(Level.INFO, "加载资料库数据");
         String keyVerifyCode = myAcctService.keyVerifyCode(txtKey.getText());
         List<TMyAcct> list = myAcctService.queryMyAcct(txtSearch.getText(), keyVerifyCode);
         ObservableList<TMyAcct> items = FXCollections.observableArrayList(list);
@@ -174,7 +169,6 @@ public class MainController implements Initializable {
         String keyVerifyCode = myAcctService.keyVerifyCode(txtKey.getText());
         CommUI.infoBox(null, "秘钥校验码：" + keyVerifyCode);
     }
-
 
 
     @FXML

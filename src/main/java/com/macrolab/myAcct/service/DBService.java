@@ -2,15 +2,16 @@ package com.macrolab.myAcct.service;
 
 import com.macrolab.myAcct.model.DBFile;
 import com.macrolab.myAcct.model.TMyAcct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DBService {
+    Logger logger = LoggerFactory.getLogger(DBService.class);
+
     Connection conn;
 
     DBFile dbFile;
@@ -20,15 +21,19 @@ public class DBService {
         connect();
     }
 
+    /**
+     * 连接sqliteDB
+     *
+     * @return
+     */
     public Connection connect() {
-        // SQLite connection string
         String url = "jdbc:sqlite:" + dbFile.getDbFile().getAbsolutePath();
         this.conn = null;
         try {
             this.conn = DriverManager.getConnection(url);
-            Logger.getLogger(DBService.class.getName()).log(Level.INFO, "连接数据库【" + dbFile.getName() + "】 ");
+            logger.info("连接数据库【" + dbFile.getName() + "】 ");
         } catch (SQLException e) {
-            Logger.getLogger(DBService.class.getName()).log(Level.WARNING, "连接数据库【" + url + "】异常：" + e.getMessage());
+            logger.error("连接数据库【" + url + "】异常：" + e.getMessage());
         }
         return conn;
     }
@@ -36,7 +41,7 @@ public class DBService {
     public void insertMyAcct(TMyAcct myAcct) {
         String sql = "INSERT INTO myAcct (name,content,create_date,update_date,salt,key_verify_code,pid,mac,draworder) VALUES(?,?,?,?,?,?,?,?,?)";
         try {
-            Logger.getLogger(DBService.class.getName()).log(Level.INFO, "插入【" + dbFile.getName() + "】" + sql);
+            logger.debug("插入【" + dbFile.getName() + "】" + sql);
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, myAcct.getName());
             pstmt.setString(2, myAcct.getContent());
@@ -51,14 +56,14 @@ public class DBService {
 
             myAcct.setId(lastInsertId()); // 回写插入的id
         } catch (SQLException e) {
-            Logger.getLogger(DBService.class.getName()).log(Level.WARNING, e.getMessage(), e);
+            logger.error("插入【" + dbFile.getName() + " ==> " + myAcct.getName() + "】异常！" + e.getMessage(), e);
         }
     }
 
     public void updateMyAcct(TMyAcct myAcct) {
         String sql = "update myAcct set name=?,content=?,create_date=?,update_date=?,salt=?,key_verify_code=?,pid=?,mac=?,draworder=? where id=?";
         try {
-            Logger.getLogger(DBService.class.getName()).log(Level.INFO, "更新【" + dbFile.getName() + "】" + sql);
+            logger.debug("更新【" + dbFile.getName() + "】" + sql);
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, myAcct.getName());
             pstmt.setString(2, myAcct.getContent());
@@ -72,14 +77,14 @@ public class DBService {
             pstmt.setInt(10, myAcct.getId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            Logger.getLogger(DBService.class.getName()).log(Level.WARNING, "更新资料异常！" + e.getMessage(), e);
+            logger.error("更新【" + dbFile.getName() + " ==> " + myAcct.getName() + "】异常！" + e.getMessage(), e);
         }
     }
 
 
     public List<TMyAcct> query(String where) {
         String sql = "SELECT id,pid,name,content,create_date,update_date,salt,key_verify_code,mac,draworder FROM main.myAcct where 1=1 " + where + " order by draworder desc";
-        Logger.getLogger(DBService.class.getName()).log(Level.INFO, "查询【" + dbFile.getName() + "】" + sql);
+        logger.debug("查询【" + dbFile.getName() + "】" + sql);
         List<TMyAcct> result = new ArrayList();
         try {
             Statement stmt = conn.createStatement();
@@ -101,11 +106,10 @@ public class DBService {
             }
             return result;
         } catch (SQLException e) {
-            Logger.getLogger(DBService.class.getName()).log(Level.WARNING, "查询资料异常！" + e.getMessage(), e);
+            logger.error("查询【" + dbFile.getName() + " where ==> " + where + "】异常！" + e.getMessage(), e);
         }
         return null;
     }
-
 
     public int lastInsertId() {
         String sql = "select last_insert_rowid() lastId";
@@ -115,35 +119,21 @@ public class DBService {
             int lastId = rs.getInt("lastId");
             return lastId;
         } catch (SQLException e) {
-            Logger.getLogger(DBService.class.getName()).log(Level.WARNING, "查询资料异常！" + e.getMessage(), e);
+            logger.error("获取lastInsertRowid()异常！" + e.getMessage(), e);
         }
         return -1;
     }
 
     public void deleteMyAcct(TMyAcct myAcct) {
         String sql = "delete from myAcct  where id=?";
-        Logger.getLogger(DBService.class.getName()).log(Level.INFO, "删除【" + dbFile.getName() + "】" + sql);
+        logger.debug("删除【" + dbFile.getName() + "】" + sql);
         List<TMyAcct> result = new ArrayList<TMyAcct>();
         try {
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, myAcct.getId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            Logger.getLogger(DBService.class.getName()).log(Level.WARNING, "删除资料异常！" + e.getMessage(), e);
+            logger.error("删除【" + dbFile.getName() + " ==> " + myAcct.getName() + "】异常！" + e.getMessage(), e);
         }
     }
-
-    public static void main(String[] args) {
-//        DBService dbService = new DBService();
-//        dbService.setDbFile("D:/mySCM/gitRepo/myAcct/db/myAcct.db");
-//        dbService.connect();
-//        TMyAcct myAcct = new TMyAcct();
-//        myAcct.setContent("fdfasffdfasffdfasffdf");
-//        dbService.insertMyAcct(myAcct);
-//        List<TMyAcct> r = dbService.query("");
-//        r.stream().forEach(t -> {
-//            System.out.println(t);
-//        });
-    }
-
 }

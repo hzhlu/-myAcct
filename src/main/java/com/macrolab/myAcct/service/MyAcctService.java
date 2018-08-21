@@ -1,25 +1,25 @@
 package com.macrolab.myAcct.service;
 
-import com.macrolab.myAcct.Main;
 import com.macrolab.myAcct.common.AppContext;
-import com.macrolab.myAcct.common.CommUI;
-import com.macrolab.myAcct.controller.MainController;
 import com.macrolab.myAcct.model.DBFile;
 import com.macrolab.myAcct.model.TMyAcct;
 import com.macrolab.myAcct.util.Base64;
 import com.macrolab.myAcct.util.DateUtil;
 import com.macrolab.myAcct.util.MyTools;
 import com.macrolab.myAcct.util.ToolUtil;
-import javafx.scene.paint.Paint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 
 public class MyAcctService {
+    Logger logger = LoggerFactory.getLogger(MyAcctService.class);
 
     DBService dbService;
 
@@ -66,9 +66,8 @@ public class MyAcctService {
         String salt = myAcct.getSalt();
         String currentKeyVerifyCode = keyVerifyCode(key);
         if (!currentKeyVerifyCode.equals(myAcct.getKeyVerifyCode())) {
-//            CommUI.warningBox(null, "资料保密秘钥不正确！");
             if (ToolUtil.isNotEmpty(myAcct.getContent())) {
-                Logger.getLogger(MyAcctService.class.getName()).log(Level.WARNING, "提取资料失败，资料保密秘钥不正确！");
+                logger.warn("提取资料失败，资料保密秘钥不正确！");
             }
             return null;
         }
@@ -76,8 +75,7 @@ public class MyAcctService {
         try {
             return new String(MyTools.decryptAES(Base64.decode(codeContent.getBytes()), MyTools.md5(key + salt)), "UTF-8");
         } catch (Exception e) {
-//            CommUI.errorBox("解读资料内容时异常，您使用的秘钥可能不正确！", e.getMessage());
-            Logger.getLogger(MyAcctService.class.getName()).log(Level.WARNING, "提取资料失败，资料保密秘钥不正确！");
+            logger.warn("提取资料失败，资料保密秘钥不正确！");
             return null;
         }
     }
@@ -94,7 +92,7 @@ public class MyAcctService {
         try {
             return new String(Base64.encode(MyTools.encryptAES(content.getBytes("UTF-8"), MyTools.md5(key + salt))));
         } catch (UnsupportedEncodingException e) {
-            Logger.getLogger(MyAcctService.class.getName()).log(Level.WARNING, "加密资料内容时异常！", e);
+            logger.warn("加密资料内容时异常！", e);
             return null;
         }
     }

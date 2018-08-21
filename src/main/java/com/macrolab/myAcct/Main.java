@@ -1,9 +1,7 @@
 package com.macrolab.myAcct;
 
-import com.macrolab.myAcct.common.AppContext;
 import com.macrolab.myAcct.controller.MainController;
 import com.macrolab.myAcct.service.DBService;
-import com.macrolab.myAcct.service.MyAcctService;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -11,12 +9,12 @@ import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * myAcct
@@ -24,6 +22,8 @@ import java.util.logging.Logger;
  * 2018.8.16 javaFX改写
  */
 public class Main extends Application {
+    Logger logger = LoggerFactory.getLogger(Main.class);
+
     public static String workpath = System.getProperty("user.dir");
 
     private Stage stage;
@@ -52,7 +52,7 @@ public class Main extends Application {
             mainController.loadDBFile(workpath + "/db"); // 加在工作目录下的数据文件
             mainController.choiceDefaultDBFile();  // 缺省加在第一个库文件
         } catch (Exception ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error("跳转主页面异常" + ex.getMessage(), ex);
         }
     }
 
