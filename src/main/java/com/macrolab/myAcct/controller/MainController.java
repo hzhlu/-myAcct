@@ -118,11 +118,13 @@ public class MainController implements Initializable {
         choiceBoxDBFile.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener() {
             @Override
             public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-                DBFile dbFile = listDBFile.get((Integer) newValue);
-                if (ToolUtil.isNotEmpty(dbFile)) {
-                    logger.info("切换到【" + dbFile.getName() + "】资料库");
-                    myAcctService.setDbService(dbFile);
-                    loadList();
+                if ((Integer) newValue >= 0) {
+                    DBFile dbFile = listDBFile.get((Integer) newValue);
+                    if (ToolUtil.isNotEmpty(dbFile)) {
+                        logger.info("切换到【" + dbFile.getName() + "】资料库");
+                        myAcctService.setDbService(dbFile);
+                        loadList();
+                    }
                 }
             }
         });
@@ -155,6 +157,9 @@ public class MainController implements Initializable {
         slider.setValue(0);
         slider.setDisable(true);
         lastListFocusId = -1;
+
+        String path = Main.workpath;
+        labelAppStatus.setText("  工作路径：" + path);
 
         // slider优先级 tooltip
         final Tooltip tooltip = new Tooltip();
@@ -189,11 +194,9 @@ public class MainController implements Initializable {
      * 初始化，加载数据目录下的sqliteDB文件
      */
     public void loadDBFile() {
-        String path = Main.workpath;
-        labelAppStatus.setText("  工作路径：" + path);
-        listDBFile = myAcctService.getDBFilelist(path);
+        listDBFile = myAcctService.getDBFilelist();
         if (listDBFile.size() == 0) {
-            CommUI.errorBox("未找到数据资料库", "工作路径：" + path);
+            CommUI.errorBox("未找到资料库", "工作路径：" + Main.workpath);
         }
         ObservableList<DBFile> items = FXCollections.observableArrayList(listDBFile);
         choiceBoxDBFile.setItems(items);
@@ -213,7 +216,6 @@ public class MainController implements Initializable {
         CommUI.infoBox(null, "秘钥校验码：" + keyVerifyCode);
     }
 
-
     @FXML
     private void actionBackupDB(ActionEvent event) {
         if (isContentChanged) {
@@ -222,7 +224,7 @@ public class MainController implements Initializable {
             return;
         }
 
-        String bakDBName = choiceBoxDBFile.getValue().getName() + ".myAcctDB"+ ".BAK-" + Long.toString(System.currentTimeMillis(), Character.MAX_RADIX) ;
+        String bakDBName = choiceBoxDBFile.getValue().getName() + ".myAcctDB" + ".BAK-" + Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
         try {
             myAcctService.copyFile(choiceBoxDBFile.getValue().getDbFile(), new File(Main.workpath + "/" + bakDBName));
             CommUI.infoBox("备份资料库【" + choiceBoxDBFile.getValue().getName() + "】", "生成备份库：" + bakDBName);
@@ -500,6 +502,7 @@ public class MainController implements Initializable {
      * @param actionEvent
      */
     public void actionCreateDB(ActionEvent actionEvent) {
+        initialize = true;
         if (isContentChanged) {
             CommUI.warningBox("资料尚未完成保存", "请稍等自动保存，或手动点击保存！");
             listAcct.getSelectionModel().clearAndSelect(lastListFocusId);
@@ -507,12 +510,19 @@ public class MainController implements Initializable {
         }
 
         String defaultValue = "我的资料库" + DateUtil.formatDate(new Date(), "yyMMddHHmmss");
-        String dbName = CommUI.txtInputDlg("新建资料库", "1", "资料库名称：", defaultValue);
+        String dbName = CommUI.txtInputDlg("新建", "创建新的资料库", "资料库名称：", defaultValue);
         if (ToolUtil.isNotEmpty(dbName)) {
             clearUI();
             myAcctService.createDB(Main.workpath + "/" + dbName + ".myAcctDB");
             loadDBFile();
             loadList();
+
+            // 选中新增的 资料库
+            for (int i = 0; i < listDBFile.size(); i++) {
+                if (listDBFile.get(i).getName().equals(dbName)) {
+                    choiceBoxDBFile.getSelectionModel().clearAndSelect(i);
+                }
+            }
         }
     }
 }

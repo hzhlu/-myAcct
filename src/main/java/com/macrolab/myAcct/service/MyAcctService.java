@@ -1,5 +1,6 @@
 package com.macrolab.myAcct.service;
 
+import com.macrolab.myAcct.Main;
 import com.macrolab.myAcct.common.AppContext;
 import com.macrolab.myAcct.model.DBFile;
 import com.macrolab.myAcct.model.TMyAcct;
@@ -146,7 +147,8 @@ public class MyAcctService {
      *
      * @return
      */
-    public List<DBFile> getDBFilelist(String path) {
+    public List<DBFile> getDBFilelist() {
+        String path = Main.workpath;
         logger.info("加载工作路径下的数据资料库.  工作路径：" + path);
         ArrayList<DBFile> files = new ArrayList<>();
         File file = new File(path);
