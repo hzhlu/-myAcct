@@ -4,8 +4,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.macroLab</groupId>
-    <artifactId>my-acct</artifactId>
-    <version>1.0.0</version>
+    <artifactId>myAcct</artifactId>
+    <version>1.0.20180822</version>
     <name>my-acct</name>
     <packaging>jar</packaging>
     <description>账户保管箱</description>

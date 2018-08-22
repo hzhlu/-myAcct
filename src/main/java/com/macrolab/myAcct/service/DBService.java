@@ -55,20 +55,19 @@ public class DBService {
     }
 
     public void updateMyAcct(TMyAcct myAcct) {
-        String sql = "update myAcct set name=?,content=?,create_date=?,update_date=?,salt=?,key_verify_code=?,pid=?,mac=?,draworder=? where id=?";
+        String sql = "update myAcct set name=?,content=?,update_date=?,salt=?,key_verify_code=?,pid=?,mac=?,draworder=? where id=?";
         try {
             logger.debug("更新【" + dbFile.getName() + "】" + sql);
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, myAcct.getName());
             pstmt.setString(2, myAcct.getContent());
-            pstmt.setString(3, myAcct.getCreateDate());
-            pstmt.setString(4, myAcct.getUpdateDate());
-            pstmt.setString(5, myAcct.getSalt());
-            pstmt.setString(6, myAcct.getKeyVerifyCode());
-            pstmt.setInt(7, myAcct.getPid());
-            pstmt.setString(8, myAcct.getMac());
-            pstmt.setDouble(9, Math.round(myAcct.getDraworder()));
-            pstmt.setInt(10, myAcct.getId());
+            pstmt.setString(3, myAcct.getUpdateDate());
+            pstmt.setString(4, myAcct.getSalt());
+            pstmt.setString(5, myAcct.getKeyVerifyCode());
+            pstmt.setInt(6, myAcct.getPid());
+            pstmt.setString(7, myAcct.getMac());
+            pstmt.setDouble(8, Math.round(myAcct.getDraworder()));
+            pstmt.setInt(9, myAcct.getId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             logger.error("更新【" + dbFile.getName() + " ==> " + myAcct.getName() + "】异常！" + e.getMessage(), e);
