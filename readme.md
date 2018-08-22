@@ -34,6 +34,5 @@
 ## todo
 - 同秘钥保护的资料内容搜索
 - 秘钥尝试次数
-- 创建安装包
 
 ![image](https://github.com/hzhlu/myAcct/blob/master/doc/mainFrame1.png)

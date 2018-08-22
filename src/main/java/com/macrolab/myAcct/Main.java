@@ -2,11 +2,13 @@ package com.macrolab.myAcct;
 
 import com.macrolab.myAcct.controller.MainController;
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,15 @@ public class Main extends Application {
         System.out.println("工作目录：" + workpath);
         // 初始化界面
         stage = primaryStage;
+
+        //设置退出系统时做的事情
+        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                System.exit(0);
+            }
+        });
+
         setTitle(title);
         gotoMain();  // 跳转到主页面
         stage.show();
