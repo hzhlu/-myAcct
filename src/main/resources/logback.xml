@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+    <property name="LOG_PATH" value="/tmp/"/>
+    <property name="LOG_FILE" value="myAcct.log"/>
+    myAcct.log
     <!-- 此xml在spring-boot-1.5.3.RELEASE.jar里 -->
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <!--<include resource="org/springframework/boot/logging/logback/console-appender.xml" />-->
@@ -15,17 +18,15 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <File>myAcct.log</File>
+        <File>${LOG_PATH}${LOG_FILE}</File>
         <encoder>
             <pattern>%date [%thread] %-5level %logger{36}:%line %msg%n</pattern>
         </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>./log/myAcct.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <maxFileSize>10MB</maxFileSize>
-            <maxHistory>60</maxHistory>
-            <totalSizeCap>2GB</totalSizeCap>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 添加.gz 历史日志会启用压缩 大大缩小日志文件所占空间 -->
+            <fileNamePattern>${LOG_PATH}/${LOG_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <maxHistory>30</maxHistory><!--  保留30天日志 -->
         </rollingPolicy>
-
 
         <!--<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
         <!--&lt;!&ndash; 添加.gz 历史日志会启用压缩 大大缩小日志文件所占空间 &ndash;&gt;-->
@@ -36,7 +37,7 @@
 
     <logger name="com.macrolab" level="trace"/>
 
-    <root level="INFO">
+    <root level="debug">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
     </root>

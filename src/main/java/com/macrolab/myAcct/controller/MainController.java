@@ -25,12 +25,20 @@ import javafx.scene.web.HTMLEditor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
 public class MainController implements Initializable {
     Logger logger = LoggerFactory.getLogger(DBService.class);
 
+    @FXML
+    public Button btnCreateDB;
+    @FXML
+    private Button btnBackupDB;
+    @FXML
+    public Label labelAppStatus;
     @FXML
     public HTMLEditor htmlEditor;
     @FXML
@@ -53,8 +61,6 @@ public class MainController implements Initializable {
     private PasswordField txtKey;
     @FXML
     private Button btnKeyVerifyCode;
-    @FXML
-    private Button btnBackupAcct;
     @FXML
     private Button btnNew;
     @FXML
@@ -181,11 +187,14 @@ public class MainController implements Initializable {
 
     /**
      * 初始化，加载数据目录下的sqliteDB文件
-     *
-     * @param path
      */
-    public void loadDBFile(String path) {
+    public void loadDBFile() {
+        String path = Main.workpath;
+        labelAppStatus.setText("  工作路径：" + path);
         listDBFile = myAcctService.getDBFilelist(path);
+        if (listDBFile.size() == 0) {
+            CommUI.errorBox("未找到数据资料库", "工作路径：" + path);
+        }
         ObservableList<DBFile> items = FXCollections.observableArrayList(listDBFile);
         choiceBoxDBFile.setItems(items);
     }
@@ -206,7 +215,21 @@ public class MainController implements Initializable {
 
 
     @FXML
-    private void actionBackupAcct(ActionEvent event) {
+    private void actionBackupDB(ActionEvent event) {
+        if (isContentChanged) {
+            CommUI.warningBox("资料尚未完成保存", "请稍等自动保存，或手动点击保存！");
+            listAcct.getSelectionModel().clearAndSelect(lastListFocusId);
+            return;
+        }
+
+        String bakDBName = choiceBoxDBFile.getValue().getName() + ".myAcctDB"+ ".BAK-" + Long.toString(System.currentTimeMillis(), Character.MAX_RADIX) ;
+        try {
+            myAcctService.copyFile(choiceBoxDBFile.getValue().getDbFile(), new File(Main.workpath + "/" + bakDBName));
+            CommUI.infoBox("备份资料库【" + choiceBoxDBFile.getValue().getName() + "】", "生成备份库：" + bakDBName);
+        } catch (IOException e) {
+            CommUI.errorBox("备份资料库【" + choiceBoxDBFile.getValue().getName() + "】失败", e.getMessage());
+            logger.error("备份资料库【" + choiceBoxDBFile.getValue().getName() + "】失败! " + e.getMessage());
+        }
     }
 
     @FXML
@@ -234,12 +257,7 @@ public class MainController implements Initializable {
         loadList();
 
         // 选中刚添加的新数据
-        listAcct.requestFocus();  // 设置列表控件获得焦点
-        for (int i = 0; i < myAcctList.size(); i++) {
-            if (myAcctList.get(i).getId() == myAcct.getId()) {
-                listAcct.getSelectionModel().select(i);
-            }
-        }
+        focusCurrentMyAcct();
 
         changeContent();
 
@@ -417,6 +435,7 @@ public class MainController implements Initializable {
                             labelContentStatus.setTextFill(Paint.valueOf("BLUE"));
                             System.out.print("*");
                             loadList();
+                            // focusCurrentMyAcct();  // 自动获得焦点 容易影响编辑
                         } else {
                             if (System.currentTimeMillis() / 1000 % 100 > 90) {
                                 System.out.println(".");
@@ -450,5 +469,50 @@ public class MainController implements Initializable {
         isContentChanged = true;
         labelContentStatus.setText("资料优先级调整为：" + Math.round(slider.getValue()));
         labelContentStatus.setTextFill(Paint.valueOf("RED"));
+    }
+
+    /**
+     * 在列表中定位当前资料
+     *
+     * @param mouseEvent
+     */
+    public void onFindMyAcct(MouseEvent mouseEvent) {
+        focusCurrentMyAcct();
+    }
+
+    /**
+     * 在列表中定位当前资料
+     */
+    private void focusCurrentMyAcct() {
+        if (myAcct.getId() > 0) {
+            listAcct.requestFocus();  // 设置列表控件获得焦点
+            for (int i = 0; i < myAcctList.size(); i++) {
+                if (myAcctList.get(i).getId() == myAcct.getId()) {
+                    listAcct.getSelectionModel().select(i);
+                }
+            }
+        }
+    }
+
+    /**
+     * 创建资料库
+     *
+     * @param actionEvent
+     */
+    public void actionCreateDB(ActionEvent actionEvent) {
+        if (isContentChanged) {
+            CommUI.warningBox("资料尚未完成保存", "请稍等自动保存，或手动点击保存！");
+            listAcct.getSelectionModel().clearAndSelect(lastListFocusId);
+            return;
+        }
+
+        String defaultValue = "我的资料库" + DateUtil.formatDate(new Date(), "yyMMddHHmmss");
+        String dbName = CommUI.txtInputDlg("新建资料库", "1", "资料库名称：", defaultValue);
+        if (ToolUtil.isNotEmpty(dbName)) {
+            clearUI();
+            myAcctService.createDB(Main.workpath + "/" + dbName + ".myAcctDB");
+            loadDBFile();
+            loadList();
+        }
     }
 }

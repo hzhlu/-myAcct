@@ -9,7 +9,7 @@ Target Server Type    : SQLite
 Target Server Version : 30714
 File Encoding         : 65001
 
-Date: 2018-08-17 08:44:29
+Date: 2018-08-22 11:04:26
 */
 
 PRAGMA foreign_keys = OFF;
@@ -20,11 +20,14 @@ PRAGMA foreign_keys = OFF;
 DROP TABLE IF EXISTS "main"."myAcct";
 CREATE TABLE "myAcct" (
 "id"  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+"pid"  INTEGER DEFAULT 0,
 "name"  TEXT,
 "content"  TEXT,
 "create_date"  TEXT,
 "update_date"  TEXT,
-"security_key"  TEXT,
+"salt"  TEXT,
 "key_verify_code"  TEXT,
-"mac"  TEXT
+"mac"  TEXT,
+"draworder"  REAL DEFAULT 0,
+CONSTRAINT "ak_name" UNIQUE ("name" COLLATE RTRIM ASC)
 );

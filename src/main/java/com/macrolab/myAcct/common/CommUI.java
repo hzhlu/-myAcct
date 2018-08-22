@@ -2,6 +2,7 @@ package com.macrolab.myAcct.common;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextInputDialog;
 
 import java.util.Optional;
 
@@ -31,4 +32,22 @@ public class CommUI {
         Optional<ButtonType> result = alert.showAndWait();
         return result;
     }
+
+
+    public static String txtInputDlg(String title, String header, String prompt, String defaultValue) {
+        TextInputDialog dialog = new TextInputDialog(defaultValue);
+        dialog.setTitle(title);
+        dialog.setHeaderText(header);
+        dialog.setContentText(prompt);
+
+        // Traditional way to get the response value.
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            return result.get();
+        } else {
+            return null;
+        }
+
+    }
+
 }

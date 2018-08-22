@@ -1,20 +1,14 @@
 package com.macrolab.myAcct;
 
 import com.macrolab.myAcct.controller.MainController;
-import com.macrolab.myAcct.service.DBService;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.fxml.JavaFXBuilderFactory;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 
 /**
  * myAcct
@@ -29,7 +23,7 @@ public class Main extends Application {
     private Stage stage;
     private final double WINDOW_WIDTH = 1245;
     private final double WINDOW_HEIGHT = 770;
-    private String title = "myAcct 2015 -> 2018";
+    public String title = "我的资料库(2018)";
 
 
     @Override
@@ -37,9 +31,14 @@ public class Main extends Application {
         System.out.println("工作目录：" + workpath);
         // 初始化界面
         stage = primaryStage;
-        stage.setTitle(title);
+        setTitle(title);
         gotoMain();  // 跳转到主页面
         stage.show();
+    }
+
+    // 设置应用的 标题栏
+    public void setTitle(String title) {
+        stage.setTitle(title);
     }
 
     /**
@@ -49,7 +48,7 @@ public class Main extends Application {
         try {
             MainController mainController = (MainController) replaceSceneContent("myAcct.fxml");
             mainController.setApp(this);
-            mainController.loadDBFile(workpath + "/db"); // 加在工作目录下的数据文件
+            mainController.loadDBFile(); // 加在工作目录下的数据文件
             mainController.choiceDefaultDBFile();  // 缺省加在第一个库文件
         } catch (Exception ex) {
             logger.error("跳转主页面异常" + ex.getMessage(), ex);
@@ -65,18 +64,8 @@ public class Main extends Application {
      */
     private Initializable replaceSceneContent(String fxml) throws Exception {
         FXMLLoader loader = new FXMLLoader();
-        File fileFXML = new File(workpath + "/src/main/resources/" + fxml);
-        FileInputStream fis = new FileInputStream(fileFXML);
-        InputStream in = fis;
-        loader.setBuilderFactory(new JavaFXBuilderFactory());
-        loader.setLocation(fileFXML.toURI().toURL());
-        AnchorPane page;
-        try {
-            page = loader.load(in);
-        } finally {
-            in.close();
-        }
-        Scene scene = new Scene(page, WINDOW_WIDTH, WINDOW_HEIGHT);
+        Parent rootNode = loader.load(getClass().getResourceAsStream("/fxml/" + fxml));
+        Scene scene = new Scene(rootNode, WINDOW_WIDTH, WINDOW_HEIGHT);
         stage.setScene(scene);
         stage.sizeToScene();
         return (Initializable) loader.getController();

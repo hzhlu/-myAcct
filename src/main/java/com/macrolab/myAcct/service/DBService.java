@@ -130,4 +130,47 @@ public class DBService {
             logger.error("删除【" + dbFile.getName() + " ==> " + myAcct.getName() + "】异常！" + e.getMessage(), e);
         }
     }
+
+    public void createDB(String dbFilename) {
+        String url = "jdbc:sqlite:" + dbFilename;
+        try {
+            Connection conn = DriverManager.getConnection(url);
+            if (conn != null) {
+                DatabaseMetaData meta = conn.getMetaData();
+                logger.info("创建数据资料库：" + dbFilename + "   " + meta.getDriverName());
+            }
+        } catch (SQLException e) {
+            logger.error("创建数据资料库：" + dbFilename + " 异常！ " + e.getMessage());
+        }
+    }
+
+    /**
+     * 初始化资料库
+     */
+    public void initDB(String dbFilename) {
+        String url = "jdbc:sqlite:" + dbFilename;
+
+        String sql = "CREATE TABLE myAcct ( " +
+                " id                INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                " pid               INTEGER DEFAULT 0, " +
+                " name              TEXT," +
+                " content           TEXT, " +
+                " create_date       TEXT, " +
+                " update_date       TEXT," +
+                " salt              TEXT, " +
+                " key_verify_code   TEXT, " +
+                " mac               TEXT, " +
+                " draworder         REAL DEFAULT 0, " +
+                " CONSTRAINT ak_name UNIQUE (name COLLATE RTRIM ASC) " +
+                ")";
+        try {
+            Connection conn = DriverManager.getConnection(url);
+            Statement stmt = conn.createStatement();
+            stmt.execute(sql);
+            logger.info("初始化资料库：" + dbFilename);
+        } catch (SQLException e) {
+            logger.error("初始化资料库异常！" + e.getMessage());
+        }
+    }
+
 }

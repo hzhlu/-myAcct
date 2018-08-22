@@ -10,9 +10,7 @@ import com.macrolab.myAcct.util.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -149,6 +147,7 @@ public class MyAcctService {
      * @return
      */
     public List<DBFile> getDBFilelist(String path) {
+        logger.info("加载工作路径下的数据资料库.  工作路径：" + path);
         ArrayList<DBFile> files = new ArrayList<>();
         File file = new File(path);
         // 只提取工作目录下 后缀名为 *.myAcctDB 的数据库文件
@@ -166,5 +165,35 @@ public class MyAcctService {
             }
         }
         return files;
+    }
+
+    public void createDB(String dbFilename) {
+        dbService.createDB(dbFilename);
+        dbService.initDB(dbFilename);
+    }
+
+
+    /**
+     * 文件复制
+     *
+     * @param source
+     * @param dest
+     * @throws IOException
+     */
+    public static void copyFile(File source, File dest) throws IOException {
+        InputStream input = null;
+        OutputStream output = null;
+        try {
+            input = new FileInputStream(source);
+            output = new FileOutputStream(dest);
+            byte[] buf = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = input.read(buf)) > 0) {
+                output.write(buf, 0, bytesRead);
+            }
+        } finally {
+            input.close();
+            output.close();
+        }
     }
 }
