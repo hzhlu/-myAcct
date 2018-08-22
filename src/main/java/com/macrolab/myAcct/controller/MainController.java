@@ -525,4 +525,10 @@ public class MainController implements Initializable {
             }
         }
     }
+
+    public void onCompleteSearchTxtInput(KeyEvent keyEvent) {
+        if (keyEvent.getCode() == KeyCode.ENTER) {
+            loadList();
+        }
+    }
 }
