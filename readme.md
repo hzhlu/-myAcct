@@ -34,4 +34,4 @@
 - 秘钥尝试次数
 - 树形结构表达，资料间的主从关系
 
-![image](https://github.com/hzhlu/myAcct/blob/master/doc/mainFrame1.png)
+![image](https://gitee.com/hzhlu/myAcct/blob/master/doc/mainFrame1.png)
